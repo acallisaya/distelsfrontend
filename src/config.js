@@ -1,2 +1,1 @@
-export const API_BASE_URL = "https://distels-api.onrender.com/api";  
-//export const API_BASE_URL = "https://distels-api.onrender.com";
+export const API_BASE_URL = "http://192.168.1.225:9090/api";

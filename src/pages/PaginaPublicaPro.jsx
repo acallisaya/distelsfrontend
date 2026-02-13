@@ -306,7 +306,7 @@ const StreamingFooterButtons = ({
           textTransform: 'uppercase'
         }}
       >
-        🎬 Servicios de Streaming
+        🎬 Obtén tu beneficio haciendo clic en el botón ⬇️
       </Typography>
       
       <Grid container spacing={2} justifyContent="center">
