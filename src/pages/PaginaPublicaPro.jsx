@@ -1985,87 +1985,87 @@ export default function PaginaPublicaPro() {
   };
 
   const renderBannerCarousel = () => {
-    const { colorPrimario, colorSecundario } = getColors();
-    
-    const banners = [];
-    const descripcionCorta = pagina?.descripcionCorta || pagina?.DescripcionCorta;
-    
-    if (pagina?.bannerUrl) {
-      banners.push({
-        url: pagina.bannerUrl,
-        titulo: pagina.encabezado || 'Banner 1',
-        descripcion: descripcionCorta || '',
-        link: null
-      });
-    }
-    
-    if (pagina?.banner2Url) {
-      banners.push({
-        url: pagina.banner2Url,
-        titulo: 'Banner 2',
-        descripcion: '',
-        link: null
-      });
-    }
-    
-    if (pagina?.banner3Url) {
-      banners.push({
-        url: pagina.banner3Url,
-        titulo: 'Banner 3',
-        descripcion: '',
-        link: null
-      });
-    }
+  const { colorPrimario, colorSecundario } = getColors();
+  
+  const banners = [];
+  const descripcionCorta = pagina?.descripcionCorta || pagina?.DescripcionCorta;
+  
+  // CORRECCIÓN: Usar getImageUrl() para CADA URL de banner
+  if (pagina?.bannerUrl) {
+    banners.push({
+      url: getImageUrl(pagina.bannerUrl), // ← CORREGIDO
+      titulo: pagina.encabezado || 'Banner 1',
+      descripcion: descripcionCorta || '',
+      link: null
+    });
+  }
+  
+  if (pagina?.banner2Url) {
+    banners.push({
+      url: getImageUrl(pagina.banner2Url), // ← CORREGIDO
+      titulo: 'Banner 2',
+      descripcion: '',
+      link: null
+    });
+  }
+  
+  if (pagina?.banner3Url) {
+    banners.push({
+      url: getImageUrl(pagina.banner3Url), // ← CORREGIDO
+      titulo: 'Banner 3',
+      descripcion: '',
+      link: null
+    });
+  }
 
-    if (banners.length === 0) {
-      return (
-        <Box key="banner" sx={{ 
-          width: '100%',
-          height: { xs: '140px', md: '180px', lg: '220px' },
-          backgroundImage: `linear-gradient(135deg, ${colorPrimario}, ${colorSecundario})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: getContrastColor(colorPrimario),
-          mb: 0
-        }}>
-          <Typography variant="h3" sx={{ 
-            fontWeight: 'bold',
-            textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
-            textAlign: 'center',
-            px: 2,
-            fontSize: { xs: '1.3rem', md: '1.7rem', lg: '2rem' }
-          }}>
-            {pagina?.encabezado || 'Bienvenido'}
-          </Typography>
-        </Box>
-      );
-    }
-
+  if (banners.length === 0) {
     return (
-      <Box key="banner-carousel" sx={{ mb: 0 }}>
-        <BannerCarousel 
-          banners={banners}
-          ordenBanners="1,2,3"
-          intervalo={5000}           // ← Tiempo en ms (5 segundos)
-          mostrarControles={true}
-          mostrarIndicadores={true}
-          // efectoTransicion="slide"  ← ❌ ELIMINADO (no existe esta prop)
-          autoPlay={true}
-          altura={320}
-          mostrarTitulos={false}
-          pausarAlHover={true}
-          onBannerClick={(banner) => {
-            if (banner.link) {
-              window.open(banner.link, '_blank');
-            }
-          }}
-        />
+      <Box key="banner" sx={{ 
+        width: '100%',
+        height: { xs: '140px', md: '180px', lg: '220px' },
+        backgroundImage: `linear-gradient(135deg, ${colorPrimario}, ${colorSecundario})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: getContrastColor(colorPrimario),
+        mb: 0
+      }}>
+        <Typography variant="h3" sx={{ 
+          fontWeight: 'bold',
+          textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
+          textAlign: 'center',
+          px: 2,
+          fontSize: { xs: '1.3rem', md: '1.7rem', lg: '2rem' }
+        }}>
+          {pagina?.encabezado || 'Bienvenido'}
+        </Typography>
       </Box>
     );
-  };
+  }
+
+  return (
+    <Box key="banner-carousel" sx={{ mb: 0 }}>
+      <BannerCarousel 
+        banners={banners}
+        ordenBanners="1,2,3"
+        intervalo={5000}
+        mostrarControles={true}
+        mostrarIndicadores={true}
+        autoPlay={true}
+        altura={320}
+        mostrarTitulos={false}
+        pausarAlHover={true}
+        onBannerClick={(banner) => {
+          if (banner.link) {
+            window.open(banner.link, '_blank');
+          }
+        }}
+      />
+    </Box>
+  );
+};
 
   const renderTituloPrincipal = () => {
     if (!pagina) return null;
