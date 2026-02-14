@@ -41,21 +41,47 @@ export default function ServiciosList() {
   const [formErrors, setFormErrors] = useState({});
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
-  const fetchServicios = async () => {
-    try {
-      setLoading(true);
-      const res = await fetch(`${API_BASE_URL}/Servicios`);
-      if (res.ok) {
-        const data = await res.json();
-        setServicios(data);
-        setFilteredServicios(data);
-      }
-    } catch  {
-      showSnackbar('Error al cargar servicios', 'error');
-    } finally {
-      setLoading(false);
+ const fetchServicios = async () => {
+  try {
+    setLoading(true);
+    
+    // Obtener token del localStorage
+    const token = localStorage.getItem('token');
+    
+    if (!token) {
+      showSnackbar('No hay sesión activa', 'error');
+      return;
     }
-  };
+
+    const res = await fetch(`${API_BASE_URL}/Servicios`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'ngrok-skip-browser-warning': 'true'
+      }
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      setServicios(data);
+      setFilteredServicios(data);
+    } else if (res.status === 401) {
+      showSnackbar('Sesión expirada, inicia sesión nuevamente', 'error');
+      // Redirigir al login
+      window.location.href = '/';
+    } else {
+      const error = await res.text();
+      showSnackbar(`Error ${res.status}: ${error}`, 'error');
+    }
+  } catch (error) {
+    console.error('Error en fetchServicios:', error);
+    showSnackbar('Error al cargar servicios', 'error');
+  } finally {
+    setLoading(false);
+  }
+};
 
   useEffect(() => {
     fetchServicios();
