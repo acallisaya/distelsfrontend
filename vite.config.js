@@ -6,11 +6,23 @@ export default defineConfig(({ command, mode }) => {
   
   return {
     plugins: [react()],
-    base: isDevelopment ? '/' : '/pruebabrokfrontend/',
+    
+    // ✅ En producción (Render) usamos '/' porque está en la raíz
+    // ✅ En desarrollo usamos '/' también (tu config.js maneja las URLs)
+    base: '/',
+    
     build: {
       outDir: 'dist',
       assetsDir: 'assets',
+      // Limpiar console.log en producción
+      minify: 'terser',
+      terserOptions: {
+        compress: {
+          drop_console: !isDevelopment,
+        },
+      },
     },
+    
     server: {
       port: 5173,
       open: true,
@@ -19,24 +31,11 @@ export default defineConfig(({ command, mode }) => {
           target: 'https://unalcoholised-della-unconglutinative.ngrok-free.dev',
           changeOrigin: true,
           secure: false,
-          rewrite: (path) => path.replace(/^\/api/, '/api'),
-          configure: (proxy) => { // 👈 Eliminamos _options
-            proxy.on('error', (err) => { // 👈 Eliminamos _req, _res
-              console.log('❌ Proxy Error:', err.message);
-            });
-            proxy.on('proxyReq', (proxyReq, req) => { // 👈 Eliminamos _res
-              console.log('🔄 Proxying:', req.method, req.url, '→', proxyReq.path);
-            });
-            proxy.on('proxyRes', (proxyRes, req) => { // 👈 Eliminamos _res
-              console.log('✅ Proxy Response:', req.url, '→', proxyRes.statusCode);
-            });
-          }
         },
         '/uploads': {
           target: 'https://unalcoholised-della-unconglutinative.ngrok-free.dev',
           changeOrigin: true,
           secure: false,
-          rewrite: (path) => path.replace(/^\/uploads/, '/uploads'),
         }
       }
     }
