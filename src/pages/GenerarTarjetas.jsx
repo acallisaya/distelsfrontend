@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box, Paper, Typography, Button, Grid, Card, CardContent,
-  Stepper, Step, StepLabel, StepContent, TextField, FormControl,
+  Stepper, Step, StepLabel, TextField, FormControl,
   InputLabel, Select, MenuItem, Alert, CircularProgress, Snackbar,
   Chip, Divider, InputAdornment, Checkbox,
   FormControlLabel, FormGroup, LinearProgress, Tooltip,
@@ -10,9 +10,9 @@ import {
 } from '@mui/material';
 import {
   AutoAwesome, AccountCircle, Visibility, VisibilityOff,
-  Close, Image, PictureAsPdf, Store, Download,
-  Print, ContentCopy, Search, CheckCircle, Error,
-  ArrowBack, ArrowForward, Refresh, RocketLaunch,
+  Close, Image, Download,
+  Print, ContentCopy, Search, CheckCircle,
+  ArrowBack, ArrowForward, RocketLaunch,
   NavigateNext, Warning, Person, VerifiedUser
 } from '@mui/icons-material';
 import { API_BASE_URL } from '../config';
@@ -41,7 +41,7 @@ export default function GenerarTarjetasAuto() {
     idPlan: '',
     cantidad: 10,
     prefijoLote: '',
-    idVendedor: '', // ✅ Ahora obligatorio
+    idVendedor: '',
     incluirQR: true,
     imprimirInstrucciones: true,
     asignacionAutomatica: true
@@ -62,44 +62,7 @@ export default function GenerarTarjetasAuto() {
   const [showPassword, setShowPassword] = useState(false);
   const [detallesDialog, setDetallesDialog] = useState(false);
 
-  // Cargar servicios y vendedores
-  useEffect(() => {
-    fetchServicios();
-    fetchVendedores();
-  }, []);
-
-  // Cargar planes cuando se selecciona servicio
-  useEffect(() => {
-    if (formData.idServicio) {
-      fetchPlanesPorServicio(formData.idServicio);
-    } else {
-      setPlanes([]);
-      setFormData(prev => ({ ...prev, idPlan: '' }));
-    }
-  }, [formData.idServicio]);
-
-  // Cargar información de cuentas cuando se selecciona servicio
-  useEffect(() => {
-    if (formData.idServicio) {
-      fetchEstadisticasCuentas(formData.idServicio);
-    }
-  }, [formData.idServicio]);
-
-  // Actualizar prefijo automático
-  useEffect(() => {
-    if (formData.idServicio && servicios.length > 0) {
-      const servicio = servicios.find(s => s.idServicio === parseInt(formData.idServicio));
-      if (servicio) {
-        const fecha = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-        const hora = new Date().getTime().toString().slice(-4);
-        setFormData(prev => ({
-          ...prev,
-          prefijoLote: `${servicio.codigo}-${fecha}-${hora}`
-        }));
-      }
-    }
-  }, [formData.idServicio, servicios]);
-
+  // ========== FUNCIONES DE CARGA ==========
   const fetchServicios = async () => {
     try {
       const res = await fetch(`${API_BASE_URL}/Servicios`);
@@ -107,7 +70,7 @@ export default function GenerarTarjetasAuto() {
         const data = await res.json();
         setServicios(data);
       }
-    } catch (err) {
+    } catch {
       showSnackbar('Error cargando servicios', 'error');
     }
   };
@@ -129,19 +92,22 @@ export default function GenerarTarjetasAuto() {
     }
   };
 
-  const fetchPlanesPorServicio = async (idServicio) => {
+  const fetchPlanesPorServicio = useCallback(async (idServicio) => {
     try {
       const res = await fetch(`${API_BASE_URL}/Servicios/${idServicio}/planes`);
       if (res.ok) {
         const data = await res.json();
         setPlanes(data);
+      } else {
+        setPlanes([]);
       }
-    } catch  {
+    } catch {
       showSnackbar('Error cargando planes', 'error');
+      setPlanes([]);
     }
-  };
+  }, []);
 
-  const fetchEstadisticasCuentas = async (idServicio) => {
+  const fetchEstadisticasCuentas = useCallback(async (idServicio) => {
     try {
       setLoadingInfo(true);
       const res = await fetch(`${API_BASE_URL}/Cuentas/estadisticas`);
@@ -163,6 +129,50 @@ export default function GenerarTarjetasAuto() {
     } finally {
       setLoadingInfo(false);
     }
+  }, []);
+
+  // ========== useEffect CORREGIDOS ==========
+  // ✅ Cargar servicios y vendedores (solo una vez)
+  useEffect(() => {
+    fetchServicios();
+    fetchVendedores();
+  }, []);
+
+  // ✅ Cargar planes cuando se selecciona servicio
+  useEffect(() => {
+    if (formData.idServicio) {
+      fetchPlanesPorServicio(formData.idServicio);
+    } else {
+      setPlanes([]);
+      setFormData(prev => ({ ...prev, idPlan: '' }));
+    }
+  }, [formData.idServicio, fetchPlanesPorServicio]);
+
+  // ✅ Cargar información de cuentas cuando se selecciona servicio
+  useEffect(() => {
+    if (formData.idServicio) {
+      fetchEstadisticasCuentas(formData.idServicio);
+    }
+  }, [formData.idServicio, fetchEstadisticasCuentas]);
+
+  // ✅ Actualizar prefijo automático
+  useEffect(() => {
+    if (formData.idServicio && servicios.length > 0) {
+      const servicio = servicios.find(s => s.idServicio === parseInt(formData.idServicio));
+      if (servicio) {
+        const fecha = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+        const hora = new Date().getTime().toString().slice(-4);
+        setFormData(prev => ({
+          ...prev,
+          prefijoLote: `${servicio.codigo}-${fecha}-${hora}`
+        }));
+      }
+    }
+  }, [formData.idServicio, servicios]);
+
+  // ========== FUNCIONES AUXILIARES ==========
+  const showSnackbar = (message, severity = 'success') => {
+    setSnackbar({ open: true, message, severity });
   };
 
   const handleChange = (e) => {
@@ -215,7 +225,7 @@ export default function GenerarTarjetasAuto() {
         cantidad: parseInt(formData.cantidad),
         prefijoLote: formData.prefijoLote,
         asignacionAutomatica: true,
-        idVendedor: parseInt(formData.idVendedor) // ✅ Siempre requerido
+        idVendedor: parseInt(formData.idVendedor)
       };
 
       console.log('Enviando datos:', requestData);
@@ -263,10 +273,6 @@ export default function GenerarTarjetasAuto() {
     }
   };
 
-  const showSnackbar = (message, severity = 'success') => {
-    setSnackbar({ open: true, message, severity });
-  };
-
   const getPlanSeleccionado = () => {
     return planes.find(p => p.idPlan === parseInt(formData.idPlan));
   };
@@ -280,19 +286,16 @@ export default function GenerarTarjetasAuto() {
     return vendedores.find(v => v.id === parseInt(formData.idVendedor));
   };
 
-  // ✅ Función para verificar si requiere perfil
   const requierePerfil = () => {
     const servicio = getServicioSeleccionado();
     return servicio?.maxPerfiles > 0;
   };
 
-  // ✅ Función para verificar si requiere PIN
   const requierePIN = () => {
     const servicio = getServicioSeleccionado();
-    return  servicio?.maxPerfiles > 0;
+    return servicio?.maxPerfiles > 0;
   };
 
-  // Función para formatear moneda en Bs.
   const formatCurrency = (amount) => {
     return `Bs. ${parseFloat(amount).toFixed(2)}`;
   };
@@ -397,7 +400,7 @@ export default function GenerarTarjetasAuto() {
       } else {
         generarCSVManual();
       }
-    } catch (err) {
+    } catch {
       generarCSVManual();
     }
   };
@@ -467,7 +470,6 @@ export default function GenerarTarjetasAuto() {
     { label: 'Resultados', description: 'Ver tarjetas generadas' }
   ];
 
-  // ✅ CORREGIDO: Vendedor ahora es obligatorio
   const renderSelectorVendedor = () => {
     if (loadingVendedores) {
       return (
@@ -490,7 +492,7 @@ export default function GenerarTarjetasAuto() {
               <Button 
                 color="inherit" 
                 size="small" 
-                href="/ClientesListPro"
+                onClick={() => navigate('/ClientesListPro')}
                 endIcon={<NavigateNext />}
               >
                 Registrar Vendedor
@@ -650,7 +652,6 @@ export default function GenerarTarjetasAuto() {
                           </Typography>
                           <Typography variant="caption" display="block">
                             • {servicio.maxPerfiles > 0 ?  'Con PIN' : 'Sin PIN' }
-                               
                           </Typography>
                           <Typography variant="caption" display="block">
                             • {servicio.asignacionAutomatica ? 'Auto-asignación' : 'Asignación manual'}
@@ -833,7 +834,6 @@ export default function GenerarTarjetasAuto() {
                 />
               </Grid>
               
-              {/* ✅ Vendedor obligatorio */}
               {renderSelectorVendedor()}
               
               {vendedorSeleccionado && (
@@ -1085,32 +1085,6 @@ export default function GenerarTarjetasAuto() {
                   </Grid>
                 </Grid>
                 
-                {/* ✅ Información sobre configuración */}
-                <Box sx={{ mt: 2, p: 2, bgcolor: '#f8f9fa', borderRadius: 1 }}>
-                  <Typography variant="subtitle2" gutterBottom>
-                    Lo que se generará automáticamente:
-                  </Typography>
-                  <Typography variant="body2">
-                    • {formData.cantidad} cuentas con usuario y contraseña únicos
-                  </Typography>
-                  {requierePerfilServicio && (
-                    <Typography variant="body2">
-                      • {formData.cantidad * (servicioSeleccionado?.maxPerfiles || 1)} perfiles
-                    </Typography>
-                  )}
-                  {requierePINServicio && (
-                    <Typography variant="body2">
-                      • {formData.cantidad} PINs únicos de 4 dígitos
-                    </Typography>
-                  )}
-                  <Typography variant="body2">
-                    • {formData.cantidad} códigos de activación de 15 dígitos
-                  </Typography>
-                  <Typography variant="body2">
-                    • Asignadas al vendedor: <strong>{vendedorInfo?.nombre}</strong>
-                  </Typography>
-                </Box>
-                
                 {getPlanSeleccionado() && (
                   <Box sx={{ mt: 3, p: 2, bgcolor: '#f8f9fa', borderRadius: 1 }}>
                     <Typography variant="subtitle2" gutterBottom>
@@ -1259,19 +1233,8 @@ export default function GenerarTarjetasAuto() {
                       >
                         Ver Detalles
                       </Button>
-                      
-                      <Button
-                        variant="outlined"
-                        onClick={() => navigate('/tarjetas')}
-                        startIcon={<Store />}
-                        size="medium"
-                        color="primary"
-                      >
-                        Ir a Gestión de Tarjetas
-                      </Button>
                     </Box>
                     
-                    {/* Sección de imagen */}
                     <Divider sx={{ my: 2 }} />
                     <Typography variant="subtitle2" gutterBottom color="text.secondary">
                       Logo Personalizado (Opcional)
@@ -1447,7 +1410,7 @@ export default function GenerarTarjetasAuto() {
                         idPlan: '',
                         cantidad: 10,
                         prefijoLote: '',
-                        idVendedor: '', // Se mantiene vacío para obligar a seleccionar
+                        idVendedor: '',
                         incluirQR: true,
                         imprimirInstrucciones: true,
                         asignacionAutomatica: true
@@ -1459,14 +1422,6 @@ export default function GenerarTarjetasAuto() {
                     }}
                   >
                     Generar Más Tarjetas
-                  </Button>
-                  
-                  <Button
-                    variant="outlined"
-                    onClick={() => navigate('/tarjetas')}
-                    startIcon={<Store />}
-                  >
-                    Ir a Gestión de Tarjetas
                   </Button>
                 </Box>
               </>
@@ -1481,7 +1436,6 @@ export default function GenerarTarjetasAuto() {
 
   return (
     <Box sx={{ p: 3, bgcolor: '#f8f9fa', minHeight: '100vh' }}>
-      {/* Header mejorado */}
       <Paper sx={{ 
         p: 3, 
         mb: 3, 
@@ -1503,7 +1457,6 @@ export default function GenerarTarjetasAuto() {
         </Box>
       </Paper>
 
-      {/* Stepper */}
       <Paper sx={{ p: 3, mb: 3, borderRadius: 2, border: '1px solid #e0e0e0' }}>
         <Stepper activeStep={activeStep} alternativeLabel>
           {steps.map((step) => (
@@ -1528,7 +1481,6 @@ export default function GenerarTarjetasAuto() {
           {getStepContent(activeStep)}
         </Box>
         
-        {/* ✅ Siempre muestra botones de navegación, incluso en paso 3 */}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 3, pt: 2, borderTop: '1px solid #e0e0e0' }}>
           <Button
             disabled={activeStep === 0}
@@ -1562,65 +1514,6 @@ export default function GenerarTarjetasAuto() {
         </Box>
       </Paper>
 
-      {/* Panel de Información */}
-      {getServicioSeleccionado() && (
-        <Grid container spacing={2}>
-          <Grid item xs={12} md={6}>
-            <Card sx={{ border: '1px solid #e0e0e0' }}>
-              <CardContent>
-                <Typography variant="subtitle1" gutterBottom color="primary">
-                  Configuración del Servicio
-                </Typography>
-                <Grid container spacing={2}>
-                  <Grid item xs={6}>
-                    <Box sx={{ textAlign: 'center', p: 1.5, bgcolor: '#f5f5f5', borderRadius: 1 }}>
-                      <Typography variant="caption" color="text.secondary" display="block">
-                        Perfiles por cuenta
-                      </Typography>
-                      <Typography variant="h6" color={requierePerfil() ? "primary" : "text.secondary"}>
-                        {requierePerfil() ? getServicioSeleccionado().maxPerfiles : '0 (Simple)'}
-                      </Typography>
-                    </Box>
-                  </Grid>
-                  <Grid item xs={6}>
-                    <Box sx={{ textAlign: 'center', p: 1.5, bgcolor: '#f5f5f5', borderRadius: 1 }}>
-                      <Typography variant="caption" color="text.secondary" display="block">
-                        Requiere PIN
-                      </Typography>
-                      <Typography variant="h6" color={requierePIN() ? "warning.main" : "success.main"}>
-                        {requierePerfil() ? (requierePIN() ? 'Sí' : 'No') : 'N/A'}
-                      </Typography>
-                    </Box>
-                  </Grid>
-                </Grid>
-              </CardContent>
-            </Card>
-          </Grid>
-          
-          {getPlanSeleccionado() && (
-            <Grid item xs={12} md={6}>
-              <Card sx={{ border: '1px solid #e0e0e0' }}>
-                <CardContent>
-                  <Typography variant="subtitle1" gutterBottom color="primary">
-                    Resumen Financiero
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Inversión: {formatCurrency(getPlanSeleccionado().precioCompra * formData.cantidad)}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Ingreso: {formatCurrency(getPlanSeleccionado().precioVenta * formData.cantidad)}
-                  </Typography>
-                  <Typography variant="body1" fontWeight="bold" color="#28a745" sx={{ mt: 1 }}>
-                    Ganancia: {formatCurrency((getPlanSeleccionado().precioVenta - getPlanSeleccionado().precioCompra) * formData.cantidad)}
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-          )}
-        </Grid>
-      )}
-
-      {/* Dialog de detalles */}
       <Dialog
         open={detallesDialog}
         onClose={() => setDetallesDialog(false)}
@@ -1723,7 +1616,6 @@ export default function GenerarTarjetasAuto() {
         </DialogActions>
       </Dialog>
 
-      {/* Snackbar */}
       <Snackbar
         open={snackbar.open}
         autoHideDuration={4000}

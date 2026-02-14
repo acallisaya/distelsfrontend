@@ -1108,11 +1108,7 @@ export default function TarjetasList() {
                             </IconButton>
                           </Tooltip>
                           
-                          <Tooltip title="Ver detalles">
-                            <IconButton size="small" sx={{ color: COLOR_PALETTE.info }}>
-                              <Visibility sx={{ fontSize: '0.8rem' }} />
-                            </IconButton>
-                          </Tooltip>
+                       
                         </Stack>
                       </TableCell>
                     </TableRow>

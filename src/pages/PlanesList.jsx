@@ -33,10 +33,9 @@ export default function PlanesList() {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(20);
   const [openDialog, setOpenDialog] = useState(false);
-  const [openGenerarDialog, setOpenGenerarDialog] = useState(false);
+  
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [editingPlan, setEditingPlan] = useState(null);
-  const [planParaGenerar, setPlanParaGenerar] = useState(null);
   const [planParaEliminar, setPlanParaEliminar] = useState(null);
   const [deleting, setDeleting] = useState(false);
   const [formData, setFormData] = useState({
@@ -46,10 +45,7 @@ export default function PlanesList() {
     precioCompra: 0,
     precioVenta: 0
   });
-  const [generarData, setGenerarData] = useState({
-    cantidad: 10,
-    prefijoLote: 'LOTE'
-  });
+  
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
   const fetchPlanes = async () => {
@@ -135,14 +131,7 @@ export default function PlanesList() {
     setOpenDialog(true);
   };
 
-  const handleOpenGenerarDialog = (plan) => {
-    setPlanParaGenerar(plan);
-    setGenerarData({
-      cantidad: 10,
-      prefijoLote: `LOTE-${plan.servicio?.codigo || 'GEN'}`
-    });
-    setOpenGenerarDialog(true);
-  };
+  
 
   const handleOpenDeleteDialog = (plan) => {
     setPlanParaEliminar(plan);
@@ -187,40 +176,7 @@ export default function PlanesList() {
     }
   };
 
-  const handleGenerarTarjetas = async () => {
-    if (!planParaGenerar || !generarData.cantidad || generarData.cantidad < 1) {
-      showSnackbar('Ingrese una cantidad válida', 'error');
-      return;
-    }
-
-    if (generarData.cantidad > 1000) {
-      showSnackbar('La cantidad máxima es 1000 tarjetas', 'error');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const res = await fetch(`${API_BASE_URL}/Planes/${planParaGenerar.idPlan}/generar-tarjetas`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(generarData)
-      });
-
-      const result = await res.json();
-      
-      if (result.success) {
-        showSnackbar(`Generadas ${result.tarjetasGeneradas} tarjetas`, 'success');
-        setOpenGenerarDialog(false);
-        fetchPlanes();
-      } else {
-        showSnackbar(result.message || 'Error al generar', 'error');
-      }
-    } catch  {
-      showSnackbar('Error al generar tarjetas', 'error');
-    } finally {
-      setLoading(false);
-    }
-  };
+  
 
   const handleDelete = async () => {
     if (!planParaEliminar) return;
@@ -258,13 +214,7 @@ export default function PlanesList() {
     });
   };
 
-  const handleGenerarChange = (e) => {
-    setGenerarData({
-      ...generarData,
-      [e.target.name]: e.target.value
-    });
-  };
-
+  
   const getServicioNombre = (idServicio) => {
     const servicio = servicios.find(s => s.idServicio === idServicio);
     return servicio?.nombre || 'Desconocido';
@@ -458,15 +408,7 @@ export default function PlanesList() {
                     }}>
                       Precios
                     </TableCell>
-                    <TableCell sx={{
-                      fontWeight: "bold",
-                      fontSize: '0.75rem',
-                      py: 0.5,
-                      backgroundColor: COLOR_PALETTE.primary,
-                      color: 'white'
-                    }}>
-                      Tarjetas
-                    </TableCell>
+                    
                     <TableCell sx={{
                       fontWeight: "bold",
                       fontSize: '0.75rem',
@@ -611,26 +553,7 @@ export default function PlanesList() {
                         
                         <TableCell sx={{ py: 0.5 }}>
                           <Box sx={{ display: 'flex', gap: 0.5 }}>
-                            {/* Botón Generar Tarjetas */}
-                            <Tooltip title="Generar tarjetas">
-                              <IconButton
-                                size="small"
-                                onClick={() => handleOpenGenerarDialog(plan)}
-                                disabled={plan.estado === 'INACTIVO'}
-                                sx={{
-                                  color: COLOR_PALETTE.info,
-                                  backgroundColor: 'transparent',
-                                  '&:hover': {
-                                    backgroundColor: COLOR_PALETTE.info,
-                                    color: 'white',
-                                  },
-                                  width: 28,
-                                  height: 28
-                                }}
-                              >
-                                <QrCode sx={{ fontSize: '0.9rem' }} />
-                              </IconButton>
-                            </Tooltip>
+                            
 
                             {/* Botón Editar */}
                             <Tooltip title="Editar plan">
@@ -658,25 +581,7 @@ export default function PlanesList() {
                               </IconButton>
                             </Tooltip>
 
-                            {/* Botón Ver Tarjetas */}
-                            <Tooltip title="Ver tarjetas">
-                              <IconButton
-                                size="small"
-                                onClick={() => window.location.href = `/planes/${plan.idPlan}/tarjetas`}
-                                sx={{
-                                  color: COLOR_PALETTE.primary,
-                                  backgroundColor: 'transparent',
-                                  '&:hover': {
-                                    backgroundColor: COLOR_PALETTE.primary,
-                                    color: 'white',
-                                  },
-                                  width: 28,
-                                  height: 28
-                                }}
-                              >
-                                <Visibility sx={{ fontSize: '0.9rem' }} />
-                              </IconButton>
-                            </Tooltip>
+                           
 
                             {/* Botón Desactivar */}
                             <Tooltip title={canDelete ? "Desactivar plan" : "No se puede desactivar"}>
@@ -895,105 +800,7 @@ export default function PlanesList() {
         </DialogActions>
       </Dialog>
 
-      {/* Dialog Generar Tarjetas */}
-      <Dialog 
-        open={openGenerarDialog} 
-        onClose={() => setOpenGenerarDialog(false)} 
-        maxWidth="sm" 
-        fullWidth
-      >
-        <DialogTitle
-          sx={{
-            background: COLOR_PALETTE.info,
-            color: 'white',
-            fontWeight: 'bold',
-            py: 1.5
-          }}
-        >
-          🎫 Generar Tarjetas
-        </DialogTitle>
-        <DialogContent sx={{ p: 2 }}>
-          {planParaGenerar && (
-            <Box sx={{ 
-              mb: 2, 
-              p: 1.5, 
-              bgcolor: '#f5f5f5', 
-              borderRadius: 1,
-              border: '1px solid #e0e0e0'
-            }}>
-              <Typography variant="subtitle2" fontWeight="bold" sx={{ fontSize: '0.85rem' }}>
-                {planParaGenerar.nombre}
-              </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.8rem' }}>
-                Servicio: {getServicioNombre(planParaGenerar.idServicio)}
-              </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.8rem' }}>
-                Duración: {planParaGenerar.duracionDias} días
-              </Typography>
-            </Box>
-          )}
-          
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, mt: 1 }}>
-            <TextField
-              fullWidth
-              label="Cantidad de Tarjetas *"
-              name="cantidad"
-              type="number"
-              size="small"
-              value={generarData.cantidad}
-              onChange={handleGenerarChange}
-              InputProps={{ 
-                inputProps: { min: 1, max: 1000 },
-                style: { fontSize: '0.85rem' }
-              }}
-              InputLabelProps={{ style: { fontSize: '0.85rem' } }}
-              helperText="Máximo 1000 tarjetas por lote"
-              FormHelperTextProps={{ style: { fontSize: '0.75rem' } }}
-            />
-            
-            <TextField
-              fullWidth
-              label="Prefijo del Lote"
-              name="prefijoLote"
-              size="small"
-              value={generarData.prefijoLote}
-              onChange={handleGenerarChange}
-              placeholder="Ej: LOTE-NETFLIX"
-              InputProps={{ style: { fontSize: '0.85rem' } }}
-              InputLabelProps={{ style: { fontSize: '0.85rem' } }}
-            />
-            
-            <Alert severity="info" sx={{ mt: 1, py: 0.5, fontSize: '0.85rem' }}>
-              Se generarán {generarData.cantidad} tarjetas con códigos únicos de 15 dígitos.
-              Cada tarjeta incluirá un código QR para activación.
-            </Alert>
-          </Box>
-        </DialogContent>
-        <DialogActions sx={{ p: 1.5 }}>
-          <Button 
-            onClick={() => setOpenGenerarDialog(false)} 
-            disabled={loading}
-            size="small"
-            sx={{ fontSize: '0.8rem' }}
-          >
-            Cancelar
-          </Button>
-          <Button
-            variant="contained"
-            onClick={handleGenerarTarjetas}
-            disabled={loading}
-            size="small"
-            startIcon={loading ? <CircularProgress size={16} /> : <QrCode />}
-            sx={{
-              background: COLOR_PALETTE.info,
-              fontSize: '0.8rem',
-              px: 2
-            }}
-          >
-            {loading ? 'Generando...' : 'Generar Tarjetas'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+     
 
       {/* Diálogo de Confirmación de Desactivación */}
       <Dialog 

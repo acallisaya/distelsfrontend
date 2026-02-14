@@ -15,7 +15,7 @@ import {
 
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
-import { API_BASE_URL } from "../config";
+import { API_BASE_URL } from "../config";  // Solo necesitas API_BASE_URL
 
 import PersonIcon from "@mui/icons-material/Person";
 import LockIcon from "@mui/icons-material/Lock";
@@ -23,8 +23,8 @@ import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import RestaurantIcon from "@mui/icons-material/Restaurant";
 
-// LOGO
-import Logo from "../assets/distelslogo.png"; 
+// IMPORT CORRECTO DEL LOGO (funciona en desarrollo y producción)
+import logo from "../assets/distelslogo.png";
 
 // Definición de colores para consistencia con el sistema
 const COLOR_PALETTE = {
@@ -119,7 +119,6 @@ const Login = () => {
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
-          // Fondo con gradiente usando la paleta de colores
           background: `linear-gradient(135deg, ${COLOR_PALETTE.primary} 0%, ${COLOR_PALETTE.secondary} 50%, ${COLOR_PALETTE.accent} 100%)`,
           animation: "fadeIn 1.2s ease",
           "@keyframes fadeIn": {
@@ -159,7 +158,7 @@ const Login = () => {
             }}
           >
 
-            {/* LOGO CON FONDO CIRCULAR */}
+            {/* LOGO CON FONDO CIRCULAR - AHORA FUNCIONA EN AMBOS ENTORNOS */}
             <Box sx={{ 
               display: "flex", 
               justifyContent: "center",
@@ -175,11 +174,11 @@ const Login = () => {
                 boxShadow: `0 6px 16px ${COLOR_PALETTE.primary}40`,
                 border: `3px solid ${COLOR_PALETTE.accent}`
               }}>
-                <img 
-                  src={Logo}
-                  alt="Logo Restaurante"
-                  style={{ width: 70 }}
-                />
+               <img 
+  src="http://192.168.1.225:9091/assets/distelslogo-0HI0yDOq.png"
+  alt="Logo"
+  style={{ width: 70 }}
+/>
               </Box>
             </Box>
 
@@ -335,7 +334,7 @@ const Login = () => {
                   <CircularProgress size={24} sx={{ color: "white" }} />
                 ) : (
                   <>
-                    <RestaurantIcon sx={{ mr: 1, fontSize: "1.2rem" }} />
+                    
                     Ingresar al Sistema
                   </>
                 )}
@@ -353,7 +352,7 @@ const Login = () => {
                   fontSize: "0.8rem"
                 }}
               >
-                © {new Date().getFullYear()} Sistema Restaurante v1.0
+                © {new Date().getFullYear()} Sistema Distels v1.0
               </Typography>
               <Typography 
                 variant="caption" 

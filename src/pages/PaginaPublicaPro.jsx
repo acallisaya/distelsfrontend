@@ -64,12 +64,13 @@ import {
   Movie,
   Tv,
   PlayCircle,
+  School,
   LiveTv
 } from '@mui/icons-material';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ReactMarkdown from 'react-markdown';
-import { API_BASE_URL } from '../config';
+import { API_BASE_URL, getImageUrl } from '../config';
 import ActivacionClienteFinalPage from './ActivacionClienteFinalPage';
 import VerificacionTarjetaEmbedded from '../pages/VerificacionTarjetaEmbedded';
 import BannerCarousel from './BannerCarousel';
@@ -235,43 +236,52 @@ const StreamingFooterButtons = ({
   const [imageErrors, setImageErrors] = useState({});
 
   const streamingServices = [
-    { 
-      id: 'netflix', 
-      nombre: 'Netflix', 
-      icono: 'https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/netflix.svg',
-      color: '#E50914',
-      bgColor: '#000000',
-      gradiente: 'linear-gradient(145deg, #E50914, #B20710)',
-      icon: <Movie sx={{ fontSize: 40, color: 'white' }} />
-    },
-    { 
-      id: 'disney', 
-      nombre: 'Disney+', 
-      icono: 'https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/disneyplus.svg',
-      color: '#113CCF',
-      bgColor: '#FFFFFF',
-      gradiente: 'linear-gradient(145deg, #113CCF, #0A2A8C)',
-      icon: <Tv sx={{ fontSize: 40, color: 'white' }} />
-    },
-    { 
-      id: 'flow', 
-      nombre: 'Flow TV', 
-      icono: 'https://flow.com.ar/assets/images/logo.svg',
-      color: '#FF0000',
-      bgColor: '#000000',
-      gradiente: 'linear-gradient(145deg, #FF0000, #CC0000)',
-      icon: <LiveTv sx={{ fontSize: 40, color: 'white' }} />
-    },
-    { 
-      id: 'prime', 
-      nombre: 'Prime Video', 
-      icono: 'https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/amazonprimevideo.svg',
-      color: '#00A8E1',
-      bgColor: '#FFFFFF',
-      gradiente: 'linear-gradient(145deg, #00A8E1, #0086B3)',
-      icon: <PlayCircle sx={{ fontSize: 40, color: 'white' }} />
-    }
-  ];
+  { 
+    id: 'netflix', 
+    nombre: 'Netflix', 
+    icono: 'https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/netflix.svg',
+    color: '#E50914',
+    bgColor: '#000000',
+    gradiente: 'linear-gradient(145deg, #E50914, #B20710)',
+    icon: <Movie sx={{ fontSize: 40, color: 'white' }} />
+  },
+  { 
+    id: 'disney', 
+    nombre: 'Disney+', 
+    icono: 'https://static-assets.bamgrid.com/product/disneyplus/images/share-default.png',
+    color: '#113CCF',
+    bgColor: '#FFFFFF',
+    gradiente: 'linear-gradient(145deg, #113CCF, #0A2A8C)',
+    icon: <Tv sx={{ fontSize: 40, color: 'white' }} />
+  },
+  { 
+    id: 'flujo', 
+    nombre: 'Flujo TV', 
+    icono: 'https://cdn.jsdelivr.net/gh/FortAwesome/Font-Awesome@6.x/svgs/solid/tv.svg',
+    color: '#E30613',
+    bgColor: '#000000',
+    gradiente: 'linear-gradient(145deg, #E30613, #A50000)',
+    icon: <LiveTv sx={{ fontSize: 40, color: 'white' }} />
+  },
+  { 
+    id: 'hbo', 
+    nombre: 'HBO Max', 
+    icono: 'https://cdn.icon-icons.com/icons2/2699/PNG/512/hbo_max_logo_icon_168520.png',
+    color: '#5822B4',
+    bgColor: '#000000',
+    gradiente: 'linear-gradient(145deg, #5822B4, #3A1775)',
+    icon: <PlayCircle sx={{ fontSize: 40, color: 'white' }} />
+  },
+  { 
+    id: 'educativo', 
+    nombre: 'Educativo', 
+    icono: 'https://cdn.icon-icons.com/icons2/3780/PNG/512/udemy_logo_icon_231503.png',
+    color: '#EC5252',
+    bgColor: '#FFFFFF',
+    gradiente: 'linear-gradient(145deg, #EC5252, #A43535)',
+    icon: <School sx={{ fontSize: 40, color: 'white' }} />
+  }
+];
 
   const handleImageError = (serviceId) => {
     setImageErrors(prev => ({ ...prev, [serviceId]: true }));
@@ -634,7 +644,7 @@ export default function PaginaPublicaPro() {
         </DialogTitle>
         <DialogContent sx={{ p: 0 }}>
           <img 
-            src={pagina.modalImageUrl} 
+             src={getImageUrl(pagina.modalImageUrl)}
             alt="Modal" 
             style={{ 
               width: '100%', 
@@ -1005,7 +1015,7 @@ export default function PaginaPublicaPro() {
                         <CardMedia
                           component="img"
                           height="180"
-                          image={imagen.url}
+                          image={getImageUrl(imagen.url)}
                           alt={imagen.titulo}
                           sx={{ 
                             objectFit: 'cover',
@@ -1255,166 +1265,7 @@ export default function PaginaPublicaPro() {
     );
   };
 
-  const renderServicios = () => {
-    if (!pagina?.serviciosPersonalizados || pagina.serviciosPersonalizados.length === 0) {
-      return null;
-    }
-
-    const serviciosActivos = pagina.serviciosPersonalizados.filter(s => s.activo !== false);
-    if (serviciosActivos.length === 0) return null;
-
-    const { 
-      colorFondo, 
-      textoColor, 
-      colorPrimario, 
-      colorSecundario, 
-      cardBackground 
-    } = getColors();
-
-    return (
-      <Box id="servicios-section" key="servicios" sx={{ 
-        mb: 4, 
-        py: 4,
-        px: 2,
-        bgcolor: colorFondo,
-        color: textoColor,
-        borderRadius: 2
-      }}>
-        <Typography variant="h2" gutterBottom sx={{ 
-          textAlign: 'center', 
-          mb: 3, 
-          fontWeight: 'bold',
-          color: textoColor,
-          background: `linear-gradient(135deg, ${colorPrimario}, ${colorSecundario})`,
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent',
-          backgroundClip: 'text',
-          fontSize: '1.8rem'
-        }}>
-          Nuestros Servicios
-        </Typography>
-        
-        <Grid container spacing={3} justifyContent="center">
-          {serviciosActivos.map((servicio, index) => {
-            const IconComponent = iconosMap[servicio.icono] || Settings;
-            
-            return (
-              <Grid item xs={12} sm={6} md={4} lg={3} key={index}>
-                <Card sx={{ 
-                  height: '100%', 
-                  display: 'flex',
-                  flexDirection: 'column',
-                  bgcolor: cardBackground,
-                  color: textoColor,
-                  border: `1px solid ${isLightColor(colorFondo) ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.08)'}`,
-                  transition: 'transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out, border-color 0.3s ease-in-out',
-                  '&:hover': { 
-                    transform: 'translateY(-4px)',
-                    boxShadow: `0 6px 12px ${colorPrimario}20`,
-                    borderColor: colorPrimario
-                  }
-                }}>
-                  <CardContent sx={{ 
-                    textAlign: 'center', 
-                    p: 2,
-                    flexGrow: 1,
-                    display: 'flex',
-                    flexDirection: 'column'
-                  }}>
-                    <Box sx={{ 
-                      width: 50, 
-                      height: 50, 
-                      bgcolor: `${colorPrimario}10`,
-                      color: colorPrimario,
-                      borderRadius: '50%',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      mx: 'auto',
-                      mb: 1.5,
-                      transition: 'all 0.3s ease-in-out',
-                      border: `2px solid ${colorPrimario}20`,
-                      '&:hover': {
-                        transform: 'scale(1.05)',
-                        bgcolor: colorPrimario,
-                        color: getContrastColor(colorPrimario),
-                        boxShadow: `0 4px 8px ${colorPrimario}30`
-                      }
-                    }}>
-                      <IconComponent sx={{ fontSize: 24 }} />
-                    </Box>
-                    
-                    <Typography variant="h6" gutterBottom sx={{ 
-                      fontWeight: 'bold', 
-                      mb: 1,
-                      color: textoColor,
-                      minHeight: '40px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: '0.9rem'
-                    }}>
-                      {servicio.nombre}
-                    </Typography>
-                    
-                    <Typography variant="body2" sx={{ 
-                      mb: 1.5, 
-                      color: textoColor,
-                      opacity: 0.8,
-                      lineHeight: 1.4,
-                      flexGrow: 1,
-                      display: '-webkit-box',
-                      WebkitLineClamp: 3,
-                      WebkitBoxOrient: 'vertical',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      fontSize: '0.75rem'
-                    }}>
-                      {servicio.descripcion}
-                    </Typography>
-                    
-                    {servicio.categoria && (
-                      <Box sx={{ mb: 1 }}>
-                        <Chip 
-                          label={servicio.categoria}
-                          size="small"
-                          sx={{
-                            bgcolor: `${colorSecundario}10`,
-                            color: colorSecundario,
-                            border: `1px solid ${colorSecundario}20`,
-                            fontSize: '0.65rem',
-                            fontWeight: 'medium'
-                          }}
-                        />
-                      </Box>
-                    )}
-                  </CardContent>
-                </Card>
-              </Grid>
-            );
-          })}
-        </Grid>
-        
-        {serviciosActivos.length > 0 && (
-          <Box sx={{ 
-            mt: 2, 
-            textAlign: 'center',
-            pt: 2,
-            borderTop: `1px solid ${isLightColor(colorFondo) ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.1)'}`
-          }}>
-            <Typography variant="body2" sx={{ 
-              color: textoColor,
-              opacity: 0.7,
-              fontStyle: 'italic',
-              fontSize: '0.75rem'
-            }}>
-              * Todos nuestros servicios incluyen garantía y soporte post-venta
-            </Typography>
-          </Box>
-        )}
-      </Box>
-    );
-  };
+ 
 
   const renderFormularioActivacion = () => {
     if (!mostrarFormularioActivacion) return null;
@@ -2144,10 +1995,10 @@ export default function PaginaPublicaPro() {
         <BannerCarousel 
           banners={banners}
           ordenBanners="1,2,3"
-          intervalo={5000}
+          intervalo={5000}           // ← Tiempo en ms (5 segundos)
           mostrarControles={true}
           mostrarIndicadores={true}
-          efectoTransicion="slide"
+          // efectoTransicion="slide"  ← ❌ ELIMINADO (no existe esta prop)
           autoPlay={true}
           altura={320}
           mostrarTitulos={false}
@@ -2328,7 +2179,7 @@ export default function PaginaPublicaPro() {
         <Box sx={{ mb: 2 }}>
           {pagina?.logoUrl && (
             <img 
-              src={pagina.logoUrl} 
+               src={getImageUrl(pagina.logoUrl)}
               alt="Logo" 
               style={{ 
                 height: '50px', 
@@ -2538,7 +2389,7 @@ export default function PaginaPublicaPro() {
             </Paper>
           )}
 
-          {pagina?.mostrarServicios && renderServicios()}
+        
 
           {pagina?.mostrarTestimonios && renderTestimoniosPersonalizados()}
 

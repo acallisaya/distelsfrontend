@@ -518,24 +518,7 @@ export default function ServiciosList() {
                         </TableCell>
                         <TableCell sx={{ py: 0.5 }}>
                           <Box sx={{ display: 'flex', gap: 0.5 }}>
-                            <Tooltip title="Ver planes">
-                              <IconButton
-                                size="small"
-                                onClick={() => window.location.href = `/servicios/${servicio.idServicio}/planes`}
-                                sx={{
-                                  color: COLOR_PALETTE.primary,
-                                  backgroundColor: 'transparent',
-                                  '&:hover': {
-                                    backgroundColor: COLOR_PALETTE.primary,
-                                    color: 'white',
-                                  },
-                                  width: 28,
-                                  height: 28
-                                }}
-                              >
-                                <Visibility sx={{ fontSize: '0.9rem' }} />
-                              </IconButton>
-                            </Tooltip>
+                            
 
                             <Tooltip title="Editar servicio">
                               <IconButton

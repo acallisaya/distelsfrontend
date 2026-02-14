@@ -78,25 +78,6 @@ import {
 } from "@mui/icons-material";
 import { API_BASE_URL } from "../config";
 
-const iconosDisponibles = [
-  { value: 'Computer', label: 'Computadora' },
-  { value: 'Store', label: 'Tienda' },
-  { value: 'TrendingUp', label: 'Marketing' },
-  { value: 'Palette', label: 'Diseño' },
-  { value: 'Settings', label: 'Configuración' },
-  { value: 'Security', label: 'Seguridad' },
-  { value: 'Phone', label: 'Teléfono' },
-  { value: 'Email', label: 'Email' },
-  { value: 'Business', label: 'Negocio' },
-  { value: 'Build', label: 'Construcción' },
-  { value: 'LocalHospital', label: 'Salud' },
-  { value: 'Restaurant', label: 'Restaurante' },
-  { value: 'CarRepair', label: 'Automotriz' },
-  { value: 'School', label: 'Educación' },
-  { value: 'Spa', label: 'Bienestar' },
-  { value: 'FitnessCenter', label: 'Fitness' },
-  { value: 'DirectionsCar', label: 'Transporte' }
-];
 
 export default function PaginaFormPro({ open, onClose, paginaData, cliente, onSave }) {
   // ESTADO INICIAL COMPLETO
@@ -148,7 +129,6 @@ export default function PaginaFormPro({ open, onClose, paginaData, cliente, onSa
     velocidadCarga: "normal"
   });
   
-  const [servicios, setServicios] = useState([]);
   const [testimonios, setTestimonios] = useState([]);
   const [galerias, setGalerias] = useState([]);
   const [videos, setVideos] = useState([]);
@@ -242,7 +222,6 @@ export default function PaginaFormPro({ open, onClose, paginaData, cliente, onSa
 
     // Resetear todo
     setPagina(initialState);
-    setServicios([]);
     setTestimonios([]);
     setGalerias([]);
     setVideos([]);
@@ -305,13 +284,6 @@ export default function PaginaFormPro({ open, onClose, paginaData, cliente, onSa
       console.log("🔄 Actualizando estado con modalImageUrl:", updatedPagina.modalImageUrl);
       setPagina(updatedPagina);
 
-      // Actualizar servicios
-      if (paginaData.serviciosPersonalizados && Array.isArray(paginaData.serviciosPersonalizados)) {
-        setServicios(paginaData.serviciosPersonalizados);
-      } else {
-        setServicios([]);
-      }
-
       // Actualizar testimonios
       if (paginaData.testimoniosPersonalizados && Array.isArray(paginaData.testimoniosPersonalizados)) {
         setTestimonios(paginaData.testimoniosPersonalizados);
@@ -359,13 +331,6 @@ export default function PaginaFormPro({ open, onClose, paginaData, cliente, onSa
     setPagina(nuevaPagina);
     
     // Valores por defecto para nueva página
-    setServicios([
-      { id: 1, nombre: 'Desarrollo Web', descripcion: 'Sitios web modernos y responsivos', icono: 'Computer', activo: true },
-      { id: 2, nombre: 'E-commerce', descripcion: 'Tiendas online completas y seguras', icono: 'Store', activo: true },
-      { id: 3, nombre: 'Marketing Digital', descripcion: 'Estrategias para aumentar tu visibilidad', icono: 'TrendingUp', activo: true },
-      { id: 4, nombre: 'Diseño UI/UX', descripcion: 'Experiencias de usuario excepcionales', icono: 'Palette', activo: true }
-    ]);
-    
     setTestimonios([
       { id: 1, nombre: "Juan Pérez", cargo: "CEO, Empresa X", comentario: "Excelente servicio, muy profesionales y atentos a nuestras necesidades.", calificacion: 5, activo: true },
       { id: 2, nombre: "María González", cargo: "Directora de Marketing", comentario: "Increíble transformación digital para nuestra empresa. ¡Altamente recomendados!", calificacion: 5, activo: true },
@@ -402,17 +367,6 @@ export default function PaginaFormPro({ open, onClose, paginaData, cliente, onSa
     }));
   };
 
-  const handleSwitchChange = (name) => (event) => {
-    setPagina(prev => ({
-      ...prev,
-      [name]: event.target.checked
-    }));
-  };
-
-  // ========== MANEJADORES DE SERVICIOS ==========
-
- 
-
   // ========== MANEJADORES DE TESTIMONIOS ==========
   const handleTestimonioToggle = (id) => {
     setTestimonios(prev => prev.map(testimonio => 
@@ -434,10 +388,7 @@ export default function PaginaFormPro({ open, onClose, paginaData, cliente, onSa
   };
 
   const handleEliminarTestimonio = (id) => {
-    if (testimonios.length <= 1) {
-      setError("Debe haber al menos un testimonio");
-      return;
-    }
+    // ✅ CORREGIDO: Permitir eliminar incluso si queda 1 testimonio
     setTestimonios(prev => prev.filter(testimonio => testimonio.id !== id));
   };
 
@@ -612,10 +563,7 @@ export default function PaginaFormPro({ open, onClose, paginaData, cliente, onSa
   };
 
   const handleEliminarVideo = (id) => {
-    if (videos.length <= 1) {
-      setError("Debe haber al menos un video");
-      return;
-    }
+    // ✅ CORREGIDO: Permitir eliminar incluso si queda 1 video
     setVideos(prev => prev.filter(video => video.id !== id));
   };
 
@@ -682,10 +630,17 @@ export default function PaginaFormPro({ open, onClose, paginaData, cliente, onSa
         else if (type === 'banner3') fieldName = 'banner3Url';
         else if (type === 'modalImage') fieldName = 'modalImageUrl';
         else fieldName = `${type}Url`;
-        
+        let urlFinal = result.url || "";
+  if (urlFinal.includes('192.168.1.225:9090')) {
+    urlFinal = urlFinal.replace(
+      'http://192.168.1.225:9090', 
+      'https://unalcoholised-della-unconglutinative.ngrok-free.dev'
+    );
+    console.log(`🌐 URL convertida a ngrok:`, urlFinal);
+  }
         return {
           ...prev,
-          [fieldName]: result.url || ""
+          [fieldName]: urlFinal ||""
         };
       });
       
@@ -750,7 +705,6 @@ export default function PaginaFormPro({ open, onClose, paginaData, cliente, onSa
     if (cliente?.id) {
       const datosPreview = {
         ...pagina,
-        serviciosPersonalizados: servicios.filter(s => s.activo),
         testimoniosPersonalizados: testimonios.filter(t => t.activo),
         galeriasImagenes: galerias.filter(g => g.activo),
         videosEmbebidos: videos.filter(v => v.activo)
@@ -764,7 +718,6 @@ export default function PaginaFormPro({ open, onClose, paginaData, cliente, onSa
     
     const datosParaPreview = {
       ...pagina,
-      serviciosPersonalizados: servicios.filter(s => s.activo),
       testimoniosPersonalizados: testimonios.filter(t => t.activo),
       galeriasImagenes: galerias.filter(g => g.activo),
       videosEmbebidos: videos.filter(v => v.activo)
@@ -858,29 +811,7 @@ export default function PaginaFormPro({ open, onClose, paginaData, cliente, onSa
         console.log('➕ CREANDO nueva página');
       }
 
-      // Preparar servicios
-      const serviciosToSend = servicios.map((servicio, index) => {
-        let existingServiceId = null;
-        if (paginaData && paginaData.serviciosPersonalizados) {
-          const existingService = paginaData.serviciosPersonalizados.find(s => 
-            s.id === servicio.id || (s.nombre === servicio.nombre && s.paginaId === paginaData.id)
-          );
-          if (existingService) {
-            existingServiceId = existingService.id;
-          }
-        }
-        
-        return {
-          id: existingServiceId || servicio.id,
-          nombre: servicio.nombre,
-          descripcion: servicio.descripcion || "",
-          icono: servicio.icono || "Settings",
-          orden: index,
-          activo: servicio.activo !== false
-        };
-      }).filter(s => s.nombre.trim() !== '');
-
-      // Preparar testimonios
+      // ✅ CORREGIDO: Preparar testimonios - AHORA SE GUARDAN CORRECTAMENTE
       const testimoniosToSend = testimonios.map((testimonio) => {
         let existingTestimonioId = null;
         if (paginaData && paginaData.testimoniosPersonalizados) {
@@ -970,16 +901,16 @@ export default function PaginaFormPro({ open, onClose, paginaData, cliente, onSa
         };
       }).filter(v => v.titulo.trim() !== '' && v.url.trim() !== '');
 
-      // Construir el objeto final
+      // Construir el objeto final - SIN serviciosPersonalizados
       const datosCompletos = {
         ...paginaDataToSend,
-        serviciosPersonalizados: serviciosToSend,
         testimoniosPersonalizados: testimoniosToSend,
         galeriasImagenes: galeriasToSend,
         videosEmbebidos: videosToSend
       };
 
       console.log('📤 Datos a enviar - modalImageUrl:', paginaDataToSend.modalImageUrl);
+      console.log('📤 Testimonios a enviar:', testimoniosToSend);
 
       // Determinar URL y método
       const url = paginaData && paginaData.id 
@@ -1085,12 +1016,11 @@ export default function PaginaFormPro({ open, onClose, paginaData, cliente, onSa
       case 0: return renderBasicoTab();
       case 1: return renderDisenoTab();
       case 2: return renderContenidoTab();
-      case 3: return renderSeccionesTab();
-      case 4: return renderTestimoniosTab();
-      case 5: return renderGaleriasTab();
-      case 6: return renderVideosTab();
-      case 7: return renderRedesTab();
-      case 8: return renderModalTab();
+      case 3: return renderTestimoniosTab(); // Testimonios ahora es tab 3
+      case 4: return renderGaleriasTab();    // Galerías es tab 4
+      case 5: return renderVideosTab();      // Videos es tab 5
+      case 6: return renderRedesTab();       // Redes es tab 6
+      case 7: return renderModalTab();       // Modal es tab 7
       default: return renderBasicoTab();
     }
   };
@@ -1273,37 +1203,7 @@ export default function PaginaFormPro({ open, onClose, paginaData, cliente, onSa
           </Box>
         </Grid>
 
-        <Grid item xs={12} md={4}>
-          <Box>
-            <Typography variant="subtitle2" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Language /> Favicon
-            </Typography>
-            <input type="file" ref={faviconInputRef} onChange={handleFaviconSelect} accept="image/*,.ico" style={{ display: 'none' }} />
-            {pagina.faviconUrl ? (
-              <Box>
-                <Card sx={{ mb: 1, p: 2, textAlign: 'center' }}>
-                  <img src={pagina.faviconUrl} alt="Favicon" style={{ width: 32, height: 32 }} />
-                </Card>
-                <Stack direction="row" spacing={1}>
-                  <Button size="small" onClick={() => faviconInputRef.current?.click()}>
-                    Cambiar
-                  </Button>
-                  <Button size="small" color="error" onClick={() => setPagina(prev => ({ ...prev, faviconUrl: "" }))}>
-                    Eliminar
-                  </Button>
-                </Stack>
-              </Box>
-            ) : (
-              <Box sx={{ border: '2px dashed #ccc', borderRadius: 1, p: 3, textAlign: 'center', cursor: 'pointer' }}
-                onClick={() => faviconInputRef.current?.click()}>
-                <AddPhotoAlternate sx={{ fontSize: 36, color: '#999', mb: 1 }} />
-                <Typography variant="body2">Subir Favicon</Typography>
-                <Typography variant="caption" color="text.secondary">(32×32px, formato .ico)</Typography>
-              </Box>
-            )}
-            <TextField fullWidth label="URL del Favicon" name="faviconUrl" value={pagina.faviconUrl} onChange={handleChange} size="small" sx={{ mt: 1 }} />
-          </Box>
-        </Grid>
+        
       </Grid>
 
       <Divider sx={{ my: 3 }} />
@@ -1559,180 +1459,6 @@ export default function PaginaFormPro({ open, onClose, paginaData, cliente, onSa
     </Box>
   );
 
-  const renderSeccionesTab = () => (
-    <Box>
-      <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-        <Widgets /> Secciones de la Página
-      </Typography>
-      
-      <Alert severity="info" sx={{ mb: 3 }}>
-        Activa o desactiva las secciones que quieres mostrar en tu página web.
-      </Alert>
-      
-      <Grid container spacing={2}>
-        <Grid item xs={12} md={6}>
-          <Paper sx={{ p: 2 }}>
-            <FormGroup>
-              <FormControlLabel
-                control={
-                  <Switch 
-                    checked={pagina.mostrarServicios} 
-                    onChange={handleSwitchChange('mostrarServicios')}
-                    color="primary"
-                  />
-                }
-                label="Mostrar Servicios"
-              />
-              <Typography variant="caption" color="text.secondary">
-                Muestra la sección de servicios personalizados
-              </Typography>
-            </FormGroup>
-          </Paper>
-        </Grid>
-        
-        <Grid item xs={12} md={6}>
-          <Paper sx={{ p: 2 }}>
-            <FormGroup>
-              <FormControlLabel
-                control={
-                  <Switch 
-                    checked={pagina.mostrarTestimonios} 
-                    onChange={handleSwitchChange('mostrarTestimonios')}
-                    color="primary"
-                  />
-                }
-                label="Mostrar Testimonios"
-              />
-              <Typography variant="caption" color="text.secondary">
-                Muestra testimonios de clientes
-              </Typography>
-            </FormGroup>
-          </Paper>
-        </Grid>
-        
-        <Grid item xs={12} md={6}>
-          <Paper sx={{ p: 2 }}>
-            <FormGroup>
-              <FormControlLabel
-                control={
-                  <Switch 
-                    checked={pagina.mostrarGalerias} 
-                    onChange={handleSwitchChange('mostrarGalerias')}
-                    color="primary"
-                  />
-                }
-                label="Mostrar Galerías"
-              />
-              <Typography variant="caption" color="text.secondary">
-                Muestra galerías de imágenes
-              </Typography>
-            </FormGroup>
-          </Paper>
-        </Grid>
-        
-        <Grid item xs={12} md={6}>
-          <Paper sx={{ p: 2 }}>
-            <FormGroup>
-              <FormControlLabel
-                control={
-                  <Switch 
-                    checked={pagina.mostrarVideos} 
-                    onChange={handleSwitchChange('mostrarVideos')}
-                    color="primary"
-                  />
-                }
-                label="Mostrar Videos"
-              />
-              <Typography variant="caption" color="text.secondary">
-                Muestra videos embebidos
-              </Typography>
-            </FormGroup>
-          </Paper>
-        </Grid>
-        
-        <Grid item xs={12} md={6}>
-          <Paper sx={{ p: 2 }}>
-            <FormGroup>
-              <FormControlLabel
-                control={
-                  <Switch 
-                    checked={pagina.mostrarContacto} 
-                    onChange={handleSwitchChange('mostrarContacto')}
-                    color="primary"
-                  />
-                }
-                label="Mostrar Contacto"
-              />
-              <Typography variant="caption" color="text.secondary">
-                Muestra formulario de contacto
-              </Typography>
-            </FormGroup>
-          </Paper>
-        </Grid>
-        
-        <Grid item xs={12} md={6}>
-          <Paper sx={{ p: 2 }}>
-            <FormGroup>
-              <FormControlLabel
-                control={
-                  <Switch 
-                    checked={pagina.mostrarMapa} 
-                    onChange={handleSwitchChange('mostrarMapa')}
-                    color="primary"
-                  />
-                }
-                label="Mostrar Mapa"
-              />
-              <Typography variant="caption" color="text.secondary">
-                Muestra mapa de ubicación
-              </Typography>
-            </FormGroup>
-          </Paper>
-        </Grid>
-        
-        <Grid item xs={12} md={6}>
-          <Paper sx={{ p: 2 }}>
-            <FormGroup>
-              <FormControlLabel
-                control={
-                  <Switch 
-                    checked={pagina.mostrarAnimaciones} 
-                    onChange={handleSwitchChange('mostrarAnimaciones')}
-                    color="primary"
-                  />
-                }
-                label="Mostrar Animaciones"
-              />
-              <Typography variant="caption" color="text.secondary">
-                Agrega animaciones a los elementos
-              </Typography>
-            </FormGroup>
-          </Paper>
-        </Grid>
-        
-        <Grid item xs={12} md={6}>
-          <Paper sx={{ p: 2 }}>
-            <FormGroup>
-              <FormControlLabel
-                control={
-                  <Switch 
-                    checked={pagina.esResponsive} 
-                    onChange={handleSwitchChange('esResponsive')}
-                    color="primary"
-                  />
-                }
-                label="Diseño Responsive"
-              />
-              <Typography variant="caption" color="text.secondary">
-                Adapta la página a dispositivos móviles
-              </Typography>
-            </FormGroup>
-          </Paper>
-        </Grid>
-      </Grid>
-    </Box>
-  );
-
   const renderTestimoniosTab = () => (
     <Box>
       <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -1757,16 +1483,15 @@ export default function PaginaFormPro({ open, onClose, paginaData, cliente, onSa
                       color="primary"
                     />
                   }
-                  label=""
+                  label="Activo"
                 />
-                <Typography variant="subtitle2" sx={{ flexGrow: 1 }}>
+                <Typography variant="subtitle2" sx={{ flexGrow: 1, ml: 2 }}>
                   Testimonio #{testimonio.id}
                 </Typography>
                 <IconButton 
                   color="error" 
                   onClick={() => handleEliminarTestimonio(testimonio.id)}
                   size="small"
-                  disabled={testimonios.length <= 1}
                 >
                   <Delete />
                 </IconButton>
@@ -1873,9 +1598,9 @@ export default function PaginaFormPro({ open, onClose, paginaData, cliente, onSa
                     onClick={(e) => e.stopPropagation()}
                   />
                 }
-                label=""
+                label="Activa"
               />
-              <Box sx={{ flexGrow: 1 }}>
+              <Box sx={{ flexGrow: 1, ml: 2 }}>
                 <Typography variant="subtitle1">
                   {galeria.titulo || 'Galería sin título'}
                 </Typography>
@@ -2080,16 +1805,15 @@ export default function PaginaFormPro({ open, onClose, paginaData, cliente, onSa
                       color="primary"
                     />
                   }
-                  label=""
+                  label="Activo"
                 />
-                <Typography variant="subtitle2" sx={{ flexGrow: 1 }}>
+                <Typography variant="subtitle2" sx={{ flexGrow: 1, ml: 2 }}>
                   Video #{video.id}
                 </Typography>
                 <IconButton 
                   color="error" 
                   onClick={() => handleEliminarVideo(video.id)}
                   size="small"
-                  disabled={videos.length <= 1}
                 >
                   <Delete />
                 </IconButton>
@@ -2456,7 +2180,7 @@ export default function PaginaFormPro({ open, onClose, paginaData, cliente, onSa
               {paginaData && paginaData.id ? '✏️ Editar Página Web Pro' : '🌐 Crear Página Web Pro'}
             </Typography>
             <Typography variant="caption" sx={{ opacity: 0.9 }}>
-              {cliente?.nombre} {cliente?.apellido} • {cliente?.id || 'Sin empresa'}
+              {cliente?.nombre} {cliente?.apellido} • {cliente?.empresa || 'Sin empresa'}
             </Typography>
           </Box>
         </Box>
@@ -2475,12 +2199,11 @@ export default function PaginaFormPro({ open, onClose, paginaData, cliente, onSa
           <Tab icon={<Dashboard />} label="Básico" />
           <Tab icon={<Palette />} label="Diseño" />
           <Tab icon={<Description />} label="Contenido" />
-          <Tab icon={<Widgets />} label="Secciones" />
           <Tab icon={<Star />} label="Testimonios" />
           <Tab icon={<InsertPhoto />} label="Galerías" />
           <Tab icon={<VideoLibrary />} label="Videos" />
           <Tab icon={<Share />} label="Redes" />
-          <Tab icon={<InsertPhoto />} label="Modal" />
+          <Tab icon={<ImageIcon />} label="Modal" />
         </Tabs>
       </Box>
 
@@ -2511,14 +2234,7 @@ export default function PaginaFormPro({ open, onClose, paginaData, cliente, onSa
             Cancelar
           </Button>
           
-          <Button
-            variant="outlined"
-            onClick={handlePreview}
-            disabled={loading || !cliente}
-            startIcon={<Preview />}
-          >
-            Ver Preview
-          </Button>
+         
           
           <Button
             variant="outlined"

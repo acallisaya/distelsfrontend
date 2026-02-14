@@ -379,8 +379,7 @@ const Start = () => {
           </IconButton>
 
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexGrow: 1 }}>
-            <img src={Logo} style={{ height: 32 }} alt="logo" />
-            <Typography variant="h6" sx={{ 
+              <Typography variant="h6" sx={{ 
               fontWeight: "bold",
               fontSize: '0.95rem',
               ml: 1
