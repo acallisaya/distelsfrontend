@@ -75,6 +75,31 @@ export default function TarjetasList() {
     { value: 'UTILIZADA', label: 'Utilizada', color: 'warning', icon: '🎬', description: 'Tiempo completamente consumido' }
   ];
 
+  // =================== FUNCIONES DE AUTENTICACIÓN ===================
+  const getToken = () => {
+    return localStorage.getItem('token');
+  };
+
+  const checkAuth = () => {
+    const token = getToken();
+    if (!token) {
+      showSnackbar('No hay sesión activa', 'error');
+      window.location.href = '/';
+      return false;
+    }
+    return true;
+  };
+
+  const getHeaders = () => {
+    const token = getToken();
+    return {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'ngrok-skip-browser-warning': 'true'
+    };
+  };
+
   // =================== FUNCIONES AUXILIARES ===================
   const showSnackbar = useCallback((message, severity = 'success') => {
     setSnackbar({ open: true, message, severity });
@@ -225,6 +250,8 @@ export default function TarjetasList() {
   // =================== FUNCIONES DE DATOS ===================
   const fetchTarjetasDetalladas = async () => {
     try {
+      if (!checkAuth()) return;
+      
       setLoading(true);
       setCargaCompleta(false);
       console.log('🔍 Iniciando carga de tarjetas...');
@@ -238,7 +265,16 @@ export default function TarjetasList() {
       do {
         console.log(`📄 Cargando página ${currentPage}...`);
         
-        const res = await fetch(`${API_BASE_URL}/Tarjetas/detalladas?page=${currentPage}&pageSize=100`);
+        const res = await fetch(`${API_BASE_URL}/Tarjetas/detalladas?page=${currentPage}&pageSize=100`, {
+          method: 'GET',
+          headers: getHeaders()
+        });
+        
+        if (res.status === 401) {
+          showSnackbar('Sesión expirada, inicia sesión nuevamente', 'error');
+          window.location.href = '/';
+          return;
+        }
         
         if (!res.ok) {
           throw new Error(`HTTP error! status: ${res.status}`);
@@ -340,8 +376,20 @@ export default function TarjetasList() {
 
   const fetchServicios = async () => {
     try {
+      if (!checkAuth()) return;
+      
       console.log('🔄 Cargando servicios...');
-      const res = await fetch(`${API_BASE_URL}/Servicios`);
+      const res = await fetch(`${API_BASE_URL}/Servicios`, {
+        method: 'GET',
+        headers: getHeaders()
+      });
+      
+      if (res.status === 401) {
+        showSnackbar('Sesión expirada, inicia sesión nuevamente', 'error');
+        window.location.href = '/';
+        return;
+      }
+      
       if (res.ok) {
         const data = await res.json();
         setServicios(data);
@@ -354,8 +402,20 @@ export default function TarjetasList() {
 
   const fetchVendedores = async () => {
     try {
+      if (!checkAuth()) return;
+      
       console.log('🔄 Cargando vendedores...');
-      const res = await fetch(`${API_BASE_URL}/Clientes/tipo/VENDEDOR`);
+      const res = await fetch(`${API_BASE_URL}/Clientes/tipo/VENDEDOR`, {
+        method: 'GET',
+        headers: getHeaders()
+      });
+      
+      if (res.status === 401) {
+        showSnackbar('Sesión expirada, inicia sesión nuevamente', 'error');
+        window.location.href = '/';
+        return;
+      }
+      
       if (res.ok) {
         const data = await res.json();
         setVendedores(data.data || []);
@@ -750,7 +810,7 @@ export default function TarjetasList() {
           </Grid>
 
           {/* Filtros expandidos */}
-          {expandedFilters && (
+          <Collapse in={expandedFilters} sx={{ width: '100%' }}>
             <Grid item xs={12}>
               <Paper variant="outlined" sx={{ p: 2, mt: 2 }}>
                 <Typography variant="subtitle2" sx={{ mb: 2, color: COLOR_PALETTE.primary }}>
@@ -867,7 +927,7 @@ export default function TarjetasList() {
                 </Box>
               </Paper>
             </Grid>
-          )}
+          </Collapse>
         </Grid>
       </Paper>
 
@@ -1107,8 +1167,6 @@ export default function TarjetasList() {
                               <PersonPin sx={{ fontSize: '0.8rem' }} />
                             </IconButton>
                           </Tooltip>
-                          
-                       
                         </Stack>
                       </TableCell>
                     </TableRow>

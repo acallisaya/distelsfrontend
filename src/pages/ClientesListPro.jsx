@@ -94,12 +94,12 @@ export default function ClientesListPro() {
   // Estados para edición
   const [editingCliente, setEditingCliente] = useState(null);
   const [editingPagina, setEditingPagina] = useState({
-  clienteId: null,
-  estado: "activo",
-  esResponsive: true,
-  velocidadCarga: "normal",
-  modalImageUrl: "" // ← NUEVO CAMPO AQUÍ
-});
+    clienteId: null,
+    estado: "activo",
+    esResponsive: true,
+    velocidadCarga: "normal",
+    modalImageUrl: ""
+  });
 
   const [previewData, setPreviewData] = useState(null);
   const [selectedCliente, setSelectedCliente] = useState(null);
@@ -122,14 +122,53 @@ export default function ClientesListPro() {
   // Notificaciones
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
 
+  // Función para obtener el token
+  const getToken = () => {
+    return localStorage.getItem('token');
+  };
+
+  // Función para verificar autenticación
+  const checkAuth = () => {
+    const token = getToken();
+    if (!token) {
+      showSnackbar('No hay sesión activa', 'error');
+      window.location.href = '/';
+      return false;
+    }
+    return true;
+  };
+
+  // Función para crear headers con token
+  const getHeaders = () => {
+    const token = getToken();
+    return {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'ngrok-skip-browser-warning': 'true'
+    };
+  };
+
   // Traer clientes
   const fetchClientes = async () => {
     try {
-      setLoading(true);
-      const res = await fetch(`${API_BASE_URL}/Clientes?includeDetails=true`);
-      if (!res.ok) throw new Error("Error al cargar clientes");
-      const data = await res.json();
+      if (!checkAuth()) return;
       
+      setLoading(true);
+      const res = await fetch(`${API_BASE_URL}/Clientes?includeDetails=true`, {
+        method: 'GET',
+        headers: getHeaders()
+      });
+      
+      if (res.status === 401) {
+        showSnackbar('Sesión expirada, inicia sesión nuevamente', 'error');
+        window.location.href = '/';
+        return;
+      }
+      
+      if (!res.ok) throw new Error("Error al cargar clientes");
+      
+      const data = await res.json();
       setClientes(data);
       applyFiltersAndSort(data);
     } catch (err) {
@@ -222,9 +261,18 @@ export default function ClientesListPro() {
     if (!window.confirm("¿Eliminar este cliente y todos sus datos asociados?")) return;
     
     try {
+      if (!checkAuth()) return;
+      
       const res = await fetch(`${API_BASE_URL}/Clientes/${id}`, {
-        method: "DELETE"
+        method: "DELETE",
+        headers: getHeaders()
       });
+
+      if (res.status === 401) {
+        showSnackbar('Sesión expirada, inicia sesión nuevamente', 'error');
+        window.location.href = '/';
+        return;
+      }
 
       if (!res.ok) throw new Error("Error al eliminar");
       
@@ -262,116 +310,127 @@ export default function ClientesListPro() {
   };
 
   // Acciones para Páginas
- // Reemplaza TODA la función handleEditPagina con esto:
-const handleEditPagina = async (cliente) => {
-  if (!cliente) {
-    showSnackbar("No se ha seleccionado un cliente", "warning");
-    return;
-  }
-  
-  setSelectedCliente(cliente);
-  
-  try {
-    let paginaData = null;
+  const handleEditPagina = async (cliente) => {
+    if (!cliente) {
+      showSnackbar("No se ha seleccionado un cliente", "warning");
+      return;
+    }
     
-    // Si el cliente tiene página, obtener los datos COMPLETOS
-    if (cliente.pagina?.id) {
-      console.log("🔍 Obteniendo datos completos de la página ID:", cliente.pagina.id);
+    setSelectedCliente(cliente);
+    
+    try {
+      if (!checkAuth()) return;
       
-      const response = await fetch(`${API_BASE_URL}/ClientePaginas/${cliente.pagina.id}`);
-      if (response.ok) {
-        paginaData = await response.json();
-        console.log("📥 Datos COMPLETOS obtenidos:", {
-          id: paginaData.id,
-          modalImageUrl: paginaData.modalImageUrl, // ← AQUÍ SE OBTIENE
-          servicios: paginaData.serviciosPersonalizados?.length || 0,
-          testimonios: paginaData.testimoniosPersonalizados?.length || 0
+      let paginaData = null;
+      
+      // Si el cliente tiene página, obtener los datos COMPLETOS
+      if (cliente.pagina?.id) {
+        console.log("🔍 Obteniendo datos completos de la página ID:", cliente.pagina.id);
+        
+        const response = await fetch(`${API_BASE_URL}/ClientePaginas/${cliente.pagina.id}`, {
+          method: 'GET',
+          headers: getHeaders()
+        });
+        
+        if (response.status === 401) {
+          showSnackbar('Sesión expirada, inicia sesión nuevamente', 'error');
+          window.location.href = '/';
+          return;
+        }
+        
+        if (response.ok) {
+          paginaData = await response.json();
+          console.log("📥 Datos COMPLETOS obtenidos:", {
+            id: paginaData.id,
+            modalImageUrl: paginaData.modalImageUrl,
+            servicios: paginaData.serviciosPersonalizados?.length || 0,
+            testimonios: paginaData.testimoniosPersonalizados?.length || 0
+          });
+        } else {
+          console.warn("⚠️ No se pudieron obtener datos completos de la página");
+          // Usar los datos básicos si falla
+          paginaData = cliente.pagina;
+        }
+      }
+      
+      if (paginaData) {
+        // Asegurarse de que modalImageUrl exista (aunque sea null o undefined)
+        setEditingPagina({
+          ...paginaData,
+          modalImageUrl: paginaData.modalImageUrl || ""
         });
       } else {
-        console.warn("⚠️ No se pudieron obtener datos completos de la página");
-        // Usar los datos básicos si falla
-        paginaData = cliente.pagina;
+        // Crear nueva página CON EL CAMPO modalImageUrl
+        setEditingPagina({
+          clienteId: cliente.id,
+          encabezado: `Bienvenido a ${cliente.empresa || cliente.nombre}`,
+          subtitulo: "Tu éxito es nuestro compromiso",
+          descripcionCorta: cliente.empresa ? `Somos ${cliente.empresa}` : "",
+          cuerpo: "",
+          telefono: cliente.telefono || "",
+          email: cliente.email || "",
+          direccion: "",
+          horarioAtencion: "",
+          colorFondo: "#ffffff",
+          colorTexto: "#333333",
+          colorPrimario: "#667eea",
+          colorSecundario: "#764ba2",
+          colorAcento: "#4caf50",
+          tema: "claro",
+          logoUrl: "",
+          bannerUrl: "",
+          banner2Url: "",
+          banner3Url: "",
+          faviconUrl: "",
+          mostrarTestimonios: true,
+          mostrarServicios: true,
+          mostrarEquipo: false,
+          mostrarBlog: false,
+          mostrarContacto: false,
+          mostrarMapa: false,
+          mostrarAnimaciones: true,
+          mostrarGalerias: true,
+          mostrarVideos: true,
+          facebookUrl: "",
+          instagramUrl: "",
+          twitterUrl: "",
+          linkedinUrl: "",
+          youtubeUrl: "",
+          whatsappUrl: "",
+          metaTitulo: `${cliente.empresa || cliente.nombre} - Página Oficial`,
+          metaDescripcion: "",
+          metaKeywords: "",
+          codigoAnalytics: "",
+          codigoHeader: "",
+          codigoFooter: "",
+          estado: "activo",
+          esResponsive: true,
+          velocidadCarga: "normal",
+          modalImageUrl: ""
+        });
       }
+      
+      setOpenPaginaForm(true);
+    } catch (error) {
+      console.error("❌ Error obteniendo datos de página:", error);
+      // Fallback a datos básicos
+      if (cliente.pagina) {
+        setEditingPagina({
+          ...cliente.pagina,
+          modalImageUrl: cliente.pagina.modalImageUrl || ""
+        });
+      } else {
+        setEditingPagina({
+          clienteId: cliente.id,
+          estado: "activo",
+          esResponsive: true,
+          velocidadCarga: "normal",
+          modalImageUrl: ""
+        });
+      }
+      setOpenPaginaForm(true);
     }
-    
-    if (paginaData) {
-      // Asegurarse de que modalImageUrl exista (aunque sea null o undefined)
-      setEditingPagina({
-        ...paginaData,
-        modalImageUrl: paginaData.modalImageUrl || "" // ← AQUÍ SE ASEGURA
-      });
-    } else {
-      // Crear nueva página CON EL CAMPO modalImageUrl
-      setEditingPagina({
-        clienteId: cliente.id,
-        encabezado: `Bienvenido a ${cliente.empresa || cliente.nombre}`,
-        subtitulo: "Tu éxito es nuestro compromiso",
-        descripcionCorta: cliente.empresa ? `Somos ${cliente.empresa}` : "",
-        cuerpo: "",
-        telefono: cliente.telefono || "",
-        email: cliente.email || "",
-        direccion: "",
-        horarioAtencion: "",
-        colorFondo: "#ffffff",
-        colorTexto: "#333333",
-        colorPrimario: "#667eea",
-        colorSecundario: "#764ba2",
-        colorAcento: "#4caf50",
-        tema: "claro",
-        logoUrl: "",
-        bannerUrl: "",
-        banner2Url: "",
-        banner3Url: "",
-        faviconUrl: "",
-        mostrarTestimonios: true,
-        mostrarServicios: true,
-        mostrarEquipo: false,
-        mostrarBlog: false,
-        mostrarContacto: false,
-        mostrarMapa: false,
-        mostrarAnimaciones: true,
-        mostrarGalerias: true,
-        mostrarVideos: true,
-        facebookUrl: "",
-        instagramUrl: "",
-        twitterUrl: "",
-        linkedinUrl: "",
-        youtubeUrl: "",
-        whatsappUrl: "",
-        metaTitulo: `${cliente.empresa || cliente.nombre} - Página Oficial`,
-        metaDescripcion: "",
-        metaKeywords: "",
-        codigoAnalytics: "",
-        codigoHeader: "",
-        codigoFooter: "",
-        estado: "activo",
-        esResponsive: true,
-        velocidadCarga: "normal",
-        modalImageUrl: "" // ← NUEVO CAMPO INICIALIZADO AQUÍ
-      });
-    }
-    
-    setOpenPaginaForm(true);
-  } catch (error) {
-    console.error("❌ Error obteniendo datos de página:", error);
-    // Fallback a datos básicos
-    if (cliente.pagina) {
-      setEditingPagina({
-        ...cliente.pagina,
-        modalImageUrl: cliente.pagina.modalImageUrl || "" // ← AQUÍ TAMBIÉN
-      });
-    } else {
-      setEditingPagina({
-        clienteId: cliente.id,
-        estado: "activo",
-        esResponsive: true,
-        velocidadCarga: "normal",
-        modalImageUrl: "" // ← AQUÍ TAMBIÉN
-      });
-    }
-    setOpenPaginaForm(true);
-  }
-};
+  };
 
   // Preview de página
   const handlePreviewPagina = (cliente, paginaData = null) => {
@@ -408,6 +467,8 @@ const handleEditPagina = async (cliente) => {
   // Toggle premium status
   const handleTogglePremium = async (cliente) => {
     try {
+      if (!checkAuth()) return;
+      
       const updatedCliente = {
         ...cliente,
         esPremium: !cliente.esPremium
@@ -415,11 +476,15 @@ const handleEditPagina = async (cliente) => {
       
       const res = await fetch(`${API_BASE_URL}/Clientes/${cliente.id}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: getHeaders(),
         body: JSON.stringify(updatedCliente)
       });
+      
+      if (res.status === 401) {
+        showSnackbar('Sesión expirada, inicia sesión nuevamente', 'error');
+        window.location.href = '/';
+        return;
+      }
       
       if (res.ok) {
         await fetchClientes();
