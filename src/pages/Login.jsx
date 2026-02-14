@@ -174,11 +174,7 @@ const Login = () => {
                 boxShadow: `0 6px 16px ${COLOR_PALETTE.primary}40`,
                 border: `3px solid ${COLOR_PALETTE.accent}`
               }}>
-               <img 
-  src="http://192.168.1.225:9091/assets/distelslogo-0HI0yDOq.png"
-  alt="Logo"
-  style={{ width: 70 }}
-/>
+               
               </Box>
             </Box>
 
