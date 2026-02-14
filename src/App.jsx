@@ -29,6 +29,7 @@ function App() {
         {/* RUTAS PÚBLICAS */}
         {/* ==================== */}
         <Route path="/Login" element={<Login />} />
+          <Route path="/" element={<Login />} /> {/* Raíz redirige al login */}
         <Route path="/login/cliente" element={<LoginCliente />} />
         <Route path="/preview/:clienteId" element={<PreviewPagePro />} />
         <Route path="/pagina/:clienteId" element={<PaginaPublicaPro />} />
