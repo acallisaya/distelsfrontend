@@ -48,16 +48,52 @@ export default function PlanesList() {
   
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
+  // ✅ Función para obtener headers con token
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem('token');
+    return {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'ngrok-skip-browser-warning': 'true'
+    };
+  };
+
+  // ✅ Verificar token antes de peticiones
+  const checkToken = () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      showSnackbar('Sesión expirada', 'error');
+      window.location.href = '/';
+      return false;
+    }
+    return true;
+  };
+
   const fetchPlanes = async () => {
+    if (!checkToken()) return;
+    
     try {
       setLoading(true);
-      const res = await fetch(`${API_BASE_URL}/Planes`);
+      const res = await fetch(`${API_BASE_URL}/Planes`, {
+        headers: getAuthHeaders()
+      });
+      
+      if (res.status === 401) {
+        showSnackbar('Sesión expirada', 'error');
+        window.location.href = '/';
+        return;
+      }
+      
       if (res.ok) {
         const data = await res.json();
         setPlanes(data);
         setFilteredPlanes(data);
+      } else {
+        showSnackbar('Error al cargar planes', 'error');
       }
-    } catch  {
+    } catch (error) {
+      console.error('Error:', error);
       showSnackbar('Error al cargar planes', 'error');
     } finally {
       setLoading(false);
@@ -65,8 +101,13 @@ export default function PlanesList() {
   };
 
   const fetchServicios = async () => {
+    if (!checkToken()) return;
+    
     try {
-      const res = await fetch(`${API_BASE_URL}/Servicios`);
+      const res = await fetch(`${API_BASE_URL}/Servicios`, {
+        headers: getAuthHeaders()
+      });
+      
       if (res.ok) {
         const data = await res.json();
         setServicios(data);
@@ -131,8 +172,6 @@ export default function PlanesList() {
     setOpenDialog(true);
   };
 
-  
-
   const handleOpenDeleteDialog = (plan) => {
     setPlanParaEliminar(plan);
     setOpenDeleteDialog(true);
@@ -144,7 +183,9 @@ export default function PlanesList() {
       return;
     }
 
+    if (!checkToken()) return;
     setLoading(true);
+    
     try {
       const url = editingPlan 
         ? `${API_BASE_URL}/Planes/${editingPlan.idPlan}`
@@ -154,9 +195,15 @@ export default function PlanesList() {
 
       const res = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify(formData)
       });
+
+      if (res.status === 401) {
+        showSnackbar('Sesión expirada', 'error');
+        window.location.href = '/';
+        return;
+      }
 
       if (res.ok) {
         showSnackbar(
@@ -169,23 +216,30 @@ export default function PlanesList() {
         const error = await res.json();
         showSnackbar(error.message || 'Error al guardar', 'error');
       }
-    } catch  {
+    } catch (error) {
+      console.error('Error:', error);
       showSnackbar('Error al guardar', 'error');
     } finally {
       setLoading(false);
     }
   };
 
-  
-
   const handleDelete = async () => {
     if (!planParaEliminar) return;
+    if (!checkToken()) return;
     
     setDeleting(true);
     try {
       const res = await fetch(`${API_BASE_URL}/Planes/${planParaEliminar.idPlan}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        headers: getAuthHeaders()
       });
+
+      if (res.status === 401) {
+        showSnackbar('Sesión expirada', 'error');
+        window.location.href = '/';
+        return;
+      }
 
       const data = await res.json();
 
@@ -196,7 +250,8 @@ export default function PlanesList() {
       } else {
         showSnackbar(data.message || 'Error al desactivar el plan', 'error');
       }
-    } catch {
+    } catch (error) {
+      console.error('Error:', error);
       showSnackbar('Error de conexión al servidor', 'error');
     } finally {
       setDeleting(false);
@@ -214,7 +269,6 @@ export default function PlanesList() {
     });
   };
 
-  
   const getServicioNombre = (idServicio) => {
     const servicio = servicios.find(s => s.idServicio === idServicio);
     return servicio?.nombre || 'Desconocido';
@@ -234,7 +288,6 @@ export default function PlanesList() {
     page * rowsPerPage + rowsPerPage
   );
 
- 
   return (
     <Box sx={{ p: 1, bgcolor: `${COLOR_PALETTE.dark}05`, minHeight: "100vh" }}>
       {/* Header Compacto */}
@@ -408,7 +461,15 @@ export default function PlanesList() {
                     }}>
                       Precios
                     </TableCell>
-                    
+                    <TableCell sx={{
+                      fontWeight: "bold",
+                      fontSize: '0.75rem',
+                      py: 0.5,
+                      backgroundColor: COLOR_PALETTE.primary,
+                      color: 'white'
+                    }}>
+                      Tarjetas
+                    </TableCell>
                     <TableCell sx={{
                       fontWeight: "bold",
                       fontSize: '0.75rem',
@@ -488,10 +549,10 @@ export default function PlanesList() {
                         <TableCell sx={{ py: 0.5 }}>
                           <Box>
                             <Typography variant="body2" sx={{ fontSize: '0.75rem' }}>
-                              Compra: <strong>Bs. {plan.precioCompra.toFixed(2)}</strong>
+                              Compra: <strong>Bs. {plan.precioCompra?.toFixed(2)}</strong>
                             </Typography>
                             <Typography variant="body2" sx={{ fontSize: '0.75rem', color: COLOR_PALETTE.success }}>
-                              Venta: <strong>Bs. {plan.precioVenta.toFixed(2)}</strong>
+                              Venta: <strong>Bs. {plan.precioVenta?.toFixed(2)}</strong>
                             </Typography>
                             <Typography variant="caption" sx={{ fontSize: '0.65rem', color: 'text.secondary' }}>
                               Ganancia: Bs. {calcularGanancia(plan).toFixed(2)}
@@ -553,13 +614,12 @@ export default function PlanesList() {
                         
                         <TableCell sx={{ py: 0.5 }}>
                           <Box sx={{ display: 'flex', gap: 0.5 }}>
-                            
-
                             {/* Botón Editar */}
                             <Tooltip title="Editar plan">
                               <IconButton
                                 size="small"
                                 onClick={() => handleOpenDialog(plan)}
+                                disabled={plan.estado === 'INACTIVO'}
                                 sx={{
                                   color: plan.estado === 'INACTIVO' ? 
                                     COLOR_PALETTE.dark : 
@@ -580,8 +640,6 @@ export default function PlanesList() {
                                 <Edit sx={{ fontSize: '0.9rem' }} />
                               </IconButton>
                             </Tooltip>
-
-                           
 
                             {/* Botón Desactivar */}
                             <Tooltip title={canDelete ? "Desactivar plan" : "No se puede desactivar"}>
@@ -800,8 +858,6 @@ export default function PlanesList() {
         </DialogActions>
       </Dialog>
 
-     
-
       {/* Diálogo de Confirmación de Desactivación */}
       <Dialog 
         open={openDeleteDialog} 
@@ -854,7 +910,7 @@ export default function PlanesList() {
                     sx={{ fontSize: '0.7rem', height: 20 }}
                   />
                   <Chip 
-                    label={`$${planParaEliminar.precioVenta.toFixed(2)}`}
+                    label={`Bs. ${planParaEliminar.precioVenta?.toFixed(2)}`}
                     size="small"
                     sx={{ fontSize: '0.7rem', height: 20, color: COLOR_PALETTE.success }}
                   />
