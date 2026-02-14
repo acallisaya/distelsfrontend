@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react"; // 👈 Eliminamos useEffect
 import Logo from "../assets/distelslogo.png";
 import {
   AppBar,
@@ -14,41 +14,28 @@ import {
   Button,
   Divider,
   ListItemIcon,
-  Card,
-  CardContent,
   Grid,
   Paper,
   Avatar,
   Chip,
-  Container,
-  CircularProgress
-} from "@mui/material";
+  Container
+} from "@mui/material"; // 👈 Eliminamos CircularProgress
 
 import MenuIcon from "@mui/icons-material/Menu";
 
-// Íconos disponibles en MUI
+// Íconos
 import DashboardIcon from "@mui/icons-material/Dashboard";
-import FastfoodIcon from "@mui/icons-material/Fastfood";
-import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
 import PeopleAltIcon from "@mui/icons-material/PeopleAlt";
 import SettingsIcon from "@mui/icons-material/Settings";
 import PhoneIcon from "@mui/icons-material/Phone";
 import QrCodeIcon from "@mui/icons-material/QrCode";
 import CardGiftcardIcon from "@mui/icons-material/CardGiftcard";
-import VideocamIcon from "@mui/icons-material/Videocam"; // Para Streaming/Video
-import MovieIcon from "@mui/icons-material/Movie"; // Alternativa para servicios
-import TvIcon from "@mui/icons-material/Tv"; // Otra alternativa
-import StoreIcon from "@mui/icons-material/Store"; // Para clientes/servicios
-import WebIcon from "@mui/icons-material/Web"; // Para páginas web
-import AccountCircleIcon from "@mui/icons-material/AccountCircle"; // Para perfil
+import VideocamIcon from "@mui/icons-material/Videocam";
 import LogoutIcon from "@mui/icons-material/Logout"; // Para cerrar sesión
-import HomeIcon from "@mui/icons-material/Home"; // Para inicio
 
 import { useAuth } from "../hooks/useAuth";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
-import { API_BASE_URL } from "../config"; // 👈 IMPORTANTE: Agregar esta línea
 
-// Definición de colores consistente
 const COLOR_PALETTE = {
   primary: "#667eea",
   secondary: "#f5576c",
@@ -61,100 +48,19 @@ const COLOR_PALETTE = {
 
 const Start = () => {
   const [open, setOpen] = useState(false);
-  const [verifying, setVerifying] = useState(true); // Estado para controlar la verificación
-  const { user, logout, loading } = useAuth();
+  const { user, logout } = useAuth(); // 👈 Eliminamos loading
   const navigate = useNavigate();
   const location = useLocation();
-
-  // ✅ VERIFICACIÓN ROBUSTA DE TOKEN (FUNCIONA EN CELULAR)
-  useEffect(() => {
-    const verificarToken = async () => {
-      try {
-        console.log('🔍 Iniciando verificación de autenticación...');
-        
-        // 1. Obtener token del localStorage
-        const token = localStorage.getItem('token');
-        console.log('📦 Token desde localStorage:', token ? '✅ Existe' : '❌ No existe');
-        
-        // 2. Si no hay token, redirigir inmediatamente
-        if (!token) {
-          console.log('❌ No hay token, redirigiendo a login');
-          navigate('/', { replace: true });
-          return;
-        }
-
-        // 3. Verificar token con el backend
-        console.log('📡 Verificando token con API...');
-        const response = await fetch(`${API_BASE_URL}/Usuarios/verificar`, {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'ngrok-skip-browser-warning': 'true' // Importante para ngrok
-          }
-        });
-
-        console.log('📡 Respuesta status:', response.status);
-
-        // 4. Si el token es inválido, limpiar y redirigir
-        if (!response.ok) {
-          throw new Error('Token inválido o expirado');
-        }
-
-        // 5. Token válido, permitir acceso
-        const data = await response.json();
-        console.log('✅ Token válido, usuario:', data);
-        setVerifying(false);
-
-      } catch (error) {
-        console.error('❌ Error de autenticación:', error.message);
-        
-        // Limpiar datos de sesión
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        
-        // Redirigir al login
-        navigate('/', { replace: true });
-      }
-    };
-
-    verificarToken();
-  }, [navigate]);
-
-  // Mostrar pantalla de carga mientras verifica
-  if (verifying) {
-    return (
-      <Box sx={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        height: '100vh',
-        flexDirection: 'column',
-        bgcolor: `${COLOR_PALETTE.dark}05`
-      }}>
-        <CircularProgress sx={{ color: COLOR_PALETTE.primary }} />
-        <Typography sx={{ mt: 2, color: COLOR_PALETTE.primary }}>
-          Verificando autenticación...
-        </Typography>
-        <Typography variant="caption" sx={{ mt: 1, color: 'text.secondary' }}>
-          {localStorage.getItem('token') ? 'Token presente' : 'Esperando token...'}
-        </Typography>
-      </Box>
-    );
-  }
 
   const toggleDrawer = (state) => () => setOpen(state);
 
   const handleLogout = () => {
-    // Limpiar todo antes de salir
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     if (logout) logout();
     navigate("/", { replace: true });
   };
 
-  // --- MENÚ CON ICONOS DISPONIBLES ---
   const menuItems = [
     { text: "Dashboard", path: "/Start", icon: <DashboardIcon /> },
     { text: "Servicios", path: "/ServiciosList", icon: <VideocamIcon /> },
@@ -168,7 +74,6 @@ const Start = () => {
 
   const getDisplayName = () => {
     if (!user) {
-      // Intentar obtener del localStorage
       const userStr = localStorage.getItem('user');
       if (userStr) {
         try {
@@ -193,7 +98,6 @@ const Start = () => {
     return colors[Math.abs(hash) % colors.length];
   };
 
-  // Dashboard actualizado con estilo compacto
   const Dashboard = () => (
     <Container maxWidth="xl" sx={{ py: 2 }}>
       {/* Header del Dashboard */}
@@ -286,137 +190,6 @@ const Start = () => {
         </Grid>
       </Grid>
 
-      {/* Acciones Rápidas */}
-      <Typography variant="h6" fontWeight="bold" gutterBottom sx={{ color: COLOR_PALETTE.dark, mb: 2 }}>
-        ⚡ Acciones Rápidas
-      </Typography>
-      
-      <Grid container spacing={2} sx={{ mb: 4 }}>
-        <Grid item xs={12} md={6}>
-          <Paper sx={{
-            p: 2,
-            borderRadius: 2,
-            bgcolor: 'white',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-            cursor: 'pointer',
-            transition: 'transform 0.2s, box-shadow 0.2s',
-            '&:hover': {
-              transform: 'translateY(-2px)',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.12)'
-            }
-          }}
-          onClick={() => navigate("/ServiciosList")}
-          >
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <Avatar sx={{ bgcolor: COLOR_PALETTE.primary }}>
-                <VideocamIcon />
-              </Avatar>
-              <Box>
-                <Typography variant="subtitle1" fontWeight="bold">
-                  Gestionar Servicios
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Netflix, Disney+, HBO Max y más
-                </Typography>
-              </Box>
-            </Box>
-          </Paper>
-        </Grid>
-
-        <Grid item xs={12} md={6}>
-          <Paper sx={{
-            p: 2,
-            borderRadius: 2,
-            bgcolor: 'white',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-            cursor: 'pointer',
-            transition: 'transform 0.2s, box-shadow 0.2s',
-            '&:hover': {
-              transform: 'translateY(-2px)',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.12)'
-            }
-          }}
-          onClick={() => navigate("/callcenter")}
-          >
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <Avatar sx={{ bgcolor: COLOR_PALETTE.warning }}>
-                <PhoneIcon />
-              </Avatar>
-              <Box>
-                <Typography variant="subtitle1" fontWeight="bold">
-                  Ir al Call Center IA
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Llamadas automáticas con inteligencia artificial
-                </Typography>
-              </Box>
-            </Box>
-          </Paper>
-        </Grid>
-
-        <Grid item xs={12} md={6}>
-          <Paper sx={{
-            p: 2,
-            borderRadius: 2,
-            bgcolor: 'white',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-            cursor: 'pointer',
-            transition: 'transform 0.2s, box-shadow 0.2s',
-            '&:hover': {
-              transform: 'translateY(-2px)',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.12)'
-            }
-          }}
-          onClick={() => navigate("/ClientesListPro")}
-          >
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <Avatar sx={{ bgcolor: COLOR_PALETTE.success }}>
-                <PeopleAltIcon />
-              </Avatar>
-              <Box>
-                <Typography variant="subtitle1" fontWeight="bold">
-                  Ver Clientes
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Administra tus clientes y páginas web
-                </Typography>
-              </Box>
-            </Box>
-          </Paper>
-        </Grid>
-
-        <Grid item xs={12} md={6}>
-          <Paper sx={{
-            p: 2,
-            borderRadius: 2,
-            bgcolor: 'white',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-            cursor: 'pointer',
-            transition: 'transform 0.2s, box-shadow 0.2s',
-            '&:hover': {
-              transform: 'translateY(-2px)',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.12)'
-            }
-          }}
-          onClick={() => navigate("/PlanesList")}
-          >
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <Avatar sx={{ bgcolor: COLOR_PALETTE.info }}>
-                <CardGiftcardIcon />
-              </Avatar>
-              <Box>
-                <Typography variant="subtitle1" fontWeight="bold">
-                  Crear Planes
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Genera nuevos planes y tarjetas
-                </Typography>
-              </Box>
-            </Box>
-          </Paper>
-        </Grid>
-      </Grid>
-
       {/* Sistema de Accesos */}
       <Paper sx={{ p: 2, borderRadius: 2, mb: 3 }}>
         <Typography variant="h6" fontWeight="bold" gutterBottom sx={{ color: COLOR_PALETTE.dark }}>
@@ -457,7 +230,6 @@ const Start = () => {
     <Box sx={{ display: "flex", bgcolor: `${COLOR_PALETTE.dark}05`, minHeight: '100vh' }}>
       <CssBaseline />
 
-      {/* APP BAR MEJORADA */}
       <AppBar position="fixed" sx={{
         background: `linear-gradient(90deg, ${COLOR_PALETTE.primary}, ${COLOR_PALETTE.secondary})`,
         boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
@@ -469,7 +241,7 @@ const Start = () => {
           </IconButton>
 
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexGrow: 1 }}>
-              <Typography variant="h6" sx={{ 
+            <Typography variant="h6" sx={{ 
               fontWeight: "bold",
               fontSize: '0.95rem',
               ml: 1
@@ -504,6 +276,7 @@ const Start = () => {
               color="inherit" 
               onClick={handleLogout}
               size="small"
+              startIcon={<LogoutIcon />}
               sx={{ 
                 fontSize: '0.75rem',
                 borderColor: 'rgba(255,255,255,0.3)',
@@ -513,52 +286,26 @@ const Start = () => {
                 }
               }}
             >
-              Cerrar sesión
+              Salir
             </Button>
           </Box>
         </Toolbar>
       </AppBar>
 
-      {/* SIDEBAR MEJORADA */}
-      <Drawer 
-        open={open} 
-        onClose={toggleDrawer(false)}
-        PaperProps={{
-          sx: {
-            width: 240,
-            bgcolor: 'white',
-            boxShadow: '2px 0 8px rgba(0,0,0,0.08)'
-          }
-        }}
-      >
+      <Drawer open={open} onClose={toggleDrawer(false)} PaperProps={{ sx: { width: 240, bgcolor: 'white' } }}>
         <Box sx={{ width: 240 }}>
-
-          {/* LOGO MEJORADO */}
-          <Box sx={{ 
-            textAlign: 'center', 
-            py: 2,
-            borderBottom: `1px solid ${COLOR_PALETTE.primary}20`
-          }}>
+          <Box sx={{ textAlign: 'center', py: 2, borderBottom: `1px solid ${COLOR_PALETTE.primary}20` }}>
             <img src={Logo} style={{ height: 48 }} alt="logo" />
-            <Typography variant="caption" sx={{ 
-              display: 'block',
-              color: COLOR_PALETTE.primary,
-              fontWeight: 'bold',
-              mt: 0.5
-            }}>
+            <Typography variant="caption" sx={{ display: 'block', color: COLOR_PALETTE.primary, fontWeight: 'bold', mt: 0.5 }}>
               Sistema DISTELS
             </Typography>
           </Box>
 
-          {/* MENÚ MEJORADO */}
           <List sx={{ p: 1 }}>
             {menuItems.map((item, idx) => (
               <ListItemButton 
                 key={idx} 
-                onClick={() => {
-                  navigate(item.path);
-                  setOpen(false);
-                }}
+                onClick={() => { navigate(item.path); setOpen(false); }}
                 selected={location.pathname === item.path}
                 sx={{
                   borderRadius: 1,
@@ -567,12 +314,8 @@ const Start = () => {
                   '&.Mui-selected': {
                     backgroundColor: `${COLOR_PALETTE.primary}15`,
                     borderLeft: `3px solid ${COLOR_PALETTE.primary}`,
-                    '&:hover': {
-                      backgroundColor: `${COLOR_PALETTE.primary}20`
-                    },
-                    '& .MuiListItemIcon-root': {
-                      color: COLOR_PALETTE.primary
-                    }
+                    '&:hover': { backgroundColor: `${COLOR_PALETTE.primary}20` },
+                    '& .MuiListItemIcon-root': { color: COLOR_PALETTE.primary }
                   }
                 }}
               >
@@ -582,56 +325,14 @@ const Start = () => {
                 }}>
                   {item.icon}
                 </ListItemIcon>
-                <ListItemText 
-                  primary={item.text} 
-                  primaryTypographyProps={{
-                    fontWeight: location.pathname === item.path ? 'bold' : 'normal',
-                    fontSize: '0.85rem'
-                  }}
-                />
+                <ListItemText primary={item.text} primaryTypographyProps={{ fontSize: '0.85rem' }} />
               </ListItemButton>
             ))}
           </List>
-
-          {/* INFORMACIÓN DEL USUARIO */}
-          <Box sx={{ 
-            p: 2, 
-            mt: 'auto',
-            borderTop: `1px solid ${COLOR_PALETTE.primary}20`
-          }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Avatar sx={{ 
-                width: 32, 
-                height: 32, 
-                bgcolor: getAvatarColor(getDisplayName()),
-                fontSize: '0.9rem'
-              }}>
-                {getDisplayName().charAt(0)}
-              </Avatar>
-              <Box>
-                <Typography variant="body2" fontWeight="bold">
-                  {getDisplayName()}
-                </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  Administrador
-                </Typography>
-              </Box>
-            </Box>
-          </Box>
         </Box>
       </Drawer>
 
-      {/* CONTENIDO PRINCIPAL */}
-      <Box 
-        component="main" 
-        sx={{ 
-          flexGrow: 1, 
-          p: 2,
-          mt: 6,
-          bgcolor: `${COLOR_PALETTE.dark}02`,
-          minHeight: 'calc(100vh - 48px)'
-        }}
-      >
+      <Box component="main" sx={{ flexGrow: 1, p: 2, mt: 6, bgcolor: `${COLOR_PALETTE.dark}02` }}>
         {location.pathname === "/Start" ? <Dashboard /> : <Outlet />}
       </Box>
     </Box>

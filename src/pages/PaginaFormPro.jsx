@@ -154,6 +154,26 @@ export default function PaginaFormPro({ open, onClose, paginaData, cliente, onSa
   const modalImageInputRef = useRef(null);
   const imageInputRefs = useRef({});
 
+  // =================== FUNCIONES DE AUTENTICACIÓN ===================
+  const getToken = () => {
+    return localStorage.getItem('token');
+  };
+
+  const getHeaders = () => {
+    const token = getToken();
+    const headers = {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'ngrok-skip-browser-warning': 'true'
+    };
+    
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    
+    return headers;
+  };
+
   // ========== useEffect PARA CARGAR DATOS ==========
   useEffect(() => {
     console.log("🔍 useEffect ejecutándose", { 
@@ -491,6 +511,10 @@ export default function PaginaFormPro({ open, onClose, paginaData, cliente, onSa
     try {
       const response = await fetch(`${API_BASE_URL}/Archivos/subir/galeria`, {
         method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${getToken()}`,
+          'ngrok-skip-browser-warning': 'true'
+        },
         body: formData,
       });
 
@@ -610,6 +634,10 @@ export default function PaginaFormPro({ open, onClose, paginaData, cliente, onSa
       
       const response = await fetch(`${API_BASE_URL}/Archivos/subir/${endpoint}`, {
         method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${getToken()}`,
+          'ngrok-skip-browser-warning': 'true'
+        },
         body: formData,
       });
 
@@ -919,12 +947,14 @@ export default function PaginaFormPro({ open, onClose, paginaData, cliente, onSa
 
       const method = paginaData && paginaData.id ? "PUT" : "POST";
 
-      // Enviar la solicitud
+      // Enviar la solicitud con token
       const response = await fetch(url, {
         method,
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json'
+          'Accept': 'application/json',
+          'Authorization': `Bearer ${getToken()}`,
+          'ngrok-skip-browser-warning': 'true'
         },
         body: JSON.stringify(datosCompletos)
       });
