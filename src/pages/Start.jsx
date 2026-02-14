@@ -20,7 +20,8 @@ import {
   Paper,
   Avatar,
   Chip,
-  Container
+  Container,
+  CircularProgress
 } from "@mui/material";
 
 import MenuIcon from "@mui/icons-material/Menu";
@@ -45,6 +46,7 @@ import HomeIcon from "@mui/icons-material/Home"; // Para inicio
 
 import { useAuth } from "../hooks/useAuth";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
+import { API_BASE_URL } from "../config"; // 👈 IMPORTANTE: Agregar esta línea
 
 // Definición de colores consistente
 const COLOR_PALETTE = {
@@ -59,18 +61,96 @@ const COLOR_PALETTE = {
 
 const Start = () => {
   const [open, setOpen] = useState(false);
+  const [verifying, setVerifying] = useState(true); // Estado para controlar la verificación
   const { user, logout, loading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
+  // ✅ VERIFICACIÓN ROBUSTA DE TOKEN (FUNCIONA EN CELULAR)
   useEffect(() => {
-    console.log("User:", user);
-  }, [user]);
+    const verificarToken = async () => {
+      try {
+        console.log('🔍 Iniciando verificación de autenticación...');
+        
+        // 1. Obtener token del localStorage
+        const token = localStorage.getItem('token');
+        console.log('📦 Token desde localStorage:', token ? '✅ Existe' : '❌ No existe');
+        
+        // 2. Si no hay token, redirigir inmediatamente
+        if (!token) {
+          console.log('❌ No hay token, redirigiendo a login');
+          navigate('/', { replace: true });
+          return;
+        }
+
+        // 3. Verificar token con el backend
+        console.log('📡 Verificando token con API...');
+        const response = await fetch(`${API_BASE_URL}/Usuarios/verificar`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'ngrok-skip-browser-warning': 'true' // Importante para ngrok
+          }
+        });
+
+        console.log('📡 Respuesta status:', response.status);
+
+        // 4. Si el token es inválido, limpiar y redirigir
+        if (!response.ok) {
+          throw new Error('Token inválido o expirado');
+        }
+
+        // 5. Token válido, permitir acceso
+        const data = await response.json();
+        console.log('✅ Token válido, usuario:', data);
+        setVerifying(false);
+
+      } catch (error) {
+        console.error('❌ Error de autenticación:', error.message);
+        
+        // Limpiar datos de sesión
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        
+        // Redirigir al login
+        navigate('/', { replace: true });
+      }
+    };
+
+    verificarToken();
+  }, [navigate]);
+
+  // Mostrar pantalla de carga mientras verifica
+  if (verifying) {
+    return (
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        height: '100vh',
+        flexDirection: 'column',
+        bgcolor: `${COLOR_PALETTE.dark}05`
+      }}>
+        <CircularProgress sx={{ color: COLOR_PALETTE.primary }} />
+        <Typography sx={{ mt: 2, color: COLOR_PALETTE.primary }}>
+          Verificando autenticación...
+        </Typography>
+        <Typography variant="caption" sx={{ mt: 1, color: 'text.secondary' }}>
+          {localStorage.getItem('token') ? 'Token presente' : 'Esperando token...'}
+        </Typography>
+      </Box>
+    );
+  }
 
   const toggleDrawer = (state) => () => setOpen(state);
 
   const handleLogout = () => {
-    logout();
+    // Limpiar todo antes de salir
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    if (logout) logout();
     navigate("/", { replace: true });
   };
 
@@ -87,7 +167,19 @@ const Start = () => {
   ];
 
   const getDisplayName = () => {
-    if (!user) return "Invitado";
+    if (!user) {
+      // Intentar obtener del localStorage
+      const userStr = localStorage.getItem('user');
+      if (userStr) {
+        try {
+          const userData = JSON.parse(userStr);
+          return userData.nombre || userData.usuario || "Usuario";
+        } catch {
+          return "Usuario";
+        }
+      }
+      return "Usuario";
+    }
     return user.nombre || user.usuario || "Usuario";
   };
 
@@ -360,8 +452,6 @@ const Start = () => {
       </Paper>
     </Container>
   );
-
-  if (loading) return <h2>Cargando...</h2>;
 
   return (
     <Box sx={{ display: "flex", bgcolor: `${COLOR_PALETTE.dark}05`, minHeight: '100vh' }}>

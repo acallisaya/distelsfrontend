@@ -480,40 +480,70 @@ export default function PaginaPublicaPro() {
   const [showModalImagen, setShowModalImagen] = useState(false);
   const [mostrarGestionTarjetas, setMostrarGestionTarjetas] = useState(false);
 
+  // =================== FUNCIONES DE AUTENTICACIÓN ===================
+  const getToken = () => {
+    return localStorage.getItem('token');
+  };
+
+  const checkAuth = () => {
+    const token = getToken();
+    if (!token) {
+      // Para páginas públicas, no redirigimos al login
+      // Solo mostramos un error si es necesario
+      return false;
+    }
+    return true;
+  };
+
+  const getHeaders = () => {
+    const token = getToken();
+    const headers = {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'ngrok-skip-browser-warning': 'true'
+    };
+    
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    
+    return headers;
+  };
+
   useEffect(() => {
     const fetchPaginaPublica = async () => {
       try {
         setLoading(true);
         
-        const res = await fetch(`${API_BASE_URL}/ClientePaginas/cliente/${clienteId}`);
+        // Para páginas públicas, no requerimos token
+        const res = await fetch(`${API_BASE_URL}/ClientePaginas/cliente/${clienteId}`, {
+          method: 'GET',
+          headers: getHeaders()
+        });
         
-        if (!res.ok) {
-          throw new Error('Página no encontrada');
-        }
-        
-        const paginaData = await res.json();
-        
-        const convertirACamelCase = (obj) => {
-          if (Array.isArray(obj)) {
-            return obj.map(convertirACamelCase);
-          } else if (obj !== null && typeof obj === 'object') {
-            const newObj = {};
-            for (const key in obj) {
-              if (obj.hasOwnProperty(key)) {
-                const camelKey = key.charAt(0).toLowerCase() + key.slice(1);
-                newObj[camelKey] = convertirACamelCase(obj[key]);
-                if (key !== camelKey) {
-                  newObj[key] = convertirACamelCase(obj[key]);
-                }
-              }
+        if (res.status === 401) {
+          // Si hay error 401 en página pública, intentamos sin token
+          const resNoAuth = await fetch(`${API_BASE_URL}/ClientePaginas/cliente/${clienteId}`, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+              'ngrok-skip-browser-warning': 'true'
             }
-            return newObj;
+          });
+          
+          if (!resNoAuth.ok) {
+            throw new Error('Página no encontrada');
           }
-          return obj;
-        };
-        
-        const paginaTransformada = convertirACamelCase(paginaData);
-        setPagina(paginaTransformada);
+          
+          const paginaData = await resNoAuth.json();
+          procesarDatosPagina(paginaData);
+        } else if (!res.ok) {
+          throw new Error('Página no encontrada');
+        } else {
+          const paginaData = await res.json();
+          procesarDatosPagina(paginaData);
+        }
         
       } catch (err) {
         console.error('❌ Error cargando página:', err);
@@ -521,6 +551,30 @@ export default function PaginaPublicaPro() {
       } finally {
         setLoading(false);
       }
+    };
+
+    const procesarDatosPagina = (paginaData) => {
+      const convertirACamelCase = (obj) => {
+        if (Array.isArray(obj)) {
+          return obj.map(convertirACamelCase);
+        } else if (obj !== null && typeof obj === 'object') {
+          const newObj = {};
+          for (const key in obj) {
+            if (obj.hasOwnProperty(key)) {
+              const camelKey = key.charAt(0).toLowerCase() + key.slice(1);
+              newObj[camelKey] = convertirACamelCase(obj[key]);
+              if (key !== camelKey) {
+                newObj[key] = convertirACamelCase(obj[key]);
+              }
+            }
+          }
+          return newObj;
+        }
+        return obj;
+      };
+      
+      const paginaTransformada = convertirACamelCase(paginaData);
+      setPagina(paginaTransformada);
     };
 
     if (clienteId) {
