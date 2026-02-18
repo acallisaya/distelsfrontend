@@ -44,7 +44,7 @@ const BannerCarousel = ({
 
   const [bannerActual, setBannerActual] = useState(0);
   const [pausado, setPausado] = useState(false);
-  const [cargando, setCargando] = useState(true); // Se pone en true al inicio
+  const [cargando, setCargando] = useState(true);
   const [direccion, setDireccion] = useState('right');
   const [tiempoTranscurrido, setTiempoTranscurrido] = useState(0);
   const intervaloRef = useRef(null);
@@ -69,11 +69,6 @@ const BannerCarousel = ({
   
   const bannersOrdenados = procesarOrdenBanners();
   const totalBanners = bannersOrdenados.length;
-
-  // CORRECCIÓN: Resetear estado de carga cuando cambia el banner
-  useEffect(() => {
-    setCargando(true);
-  }, [bannerActual]);
 
   // Funciones de navegación con useCallback
   const reiniciarTiempo = useCallback(() => { 
@@ -126,11 +121,11 @@ const BannerCarousel = ({
     } 
   }, []);
 
-  // Efecto principal para auto-play
+  // Efecto principal para auto-play - ¡CORREGIDO!
   useEffect(() => { 
     iniciarAutoPlay(); 
     return () => detenerAutoPlay(); 
-  }, [iniciarAutoPlay, detenerAutoPlay]);
+  }, [iniciarAutoPlay, detenerAutoPlay]); // Dependencias correctas
 
   // Hover
   const manejarMouseEnter = useCallback(() => { 
@@ -165,20 +160,7 @@ const BannerCarousel = ({
     }
   }, [bannerActual, bannersOrdenados, totalBanners]);
 
-  // CORRECCIÓN: Pre-cargar también la imagen actual cuando cambia el banner
-  useEffect(() => {
-    if (bannersOrdenados[bannerActual]?.url) {
-      const img = new Image();
-      img.src = bannersOrdenados[bannerActual].url;
-      img.onload = () => setCargando(false);
-      img.onerror = () => {
-        setCargando(false);
-        console.error('Error cargando banner');
-      };
-    }
-  }, [bannerActual, bannersOrdenados]);
-
-  // Carga de imagen - Mantenemos estas funciones para compatibilidad
+  // Carga de imagen
   const manejarCargaImagen = () => setCargando(false);
   const manejarErrorImagen = () => { 
     setCargando(false); 
@@ -234,7 +216,6 @@ const BannerCarousel = ({
               height: '100%',
               objectFit: 'cover',
               imageRendering: 'auto',
-              display: 'block'
             }}
           />
 
