@@ -31,7 +31,7 @@ import {
   Info
 } from '@mui/icons-material';
 import { API_BASE_URL } from '../config';
-
+import { apiFetch } from '../utils/api'; // Ajusta la ruta
 export default function LoginCliente() {
   const [formData, setFormData] = useState({
     usuario: '',
@@ -107,17 +107,14 @@ export default function LoginCliente() {
 
       console.log('📤 Enviando datos:', loginData);
 
-      const res = await fetch(`${API_BASE_URL}/Clientes/login-cliente`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'ngrok-skip-browser-warning': 'true' // <--- AÑADE ESTA LÍNEA
-        },
-        body: JSON.stringify(loginData),
-        signal: controller.signal,
-        credentials: 'include' // Importante para cookies/sesiones
-      });
+     const res = await apiFetch('/Clientes/login-cliente', {
+  method: 'POST',
+  body: JSON.stringify({
+    usuario: formData.usuario,
+    contrasena: formData.contrasena
+  }),
+  signal: controller.signal
+});
       
       clearTimeout(timeoutId);
 
