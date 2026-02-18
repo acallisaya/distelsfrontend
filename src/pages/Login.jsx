@@ -13,7 +13,7 @@ import {
   Fade
 } from "@mui/material";
 
-import { useNavigate } from "react-router-dom";
+
 import { useAuth } from "../hooks/useAuth";
 import { API_BASE_URL } from "../config";  // Solo necesitas API_BASE_URL
 
@@ -44,7 +44,7 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const navigate = useNavigate();
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -99,7 +99,7 @@ const Login = () => {
       };
 
       login(userData.token, userData);
-      navigate("/Start", { replace: true });
+     window.location.href = '/Start';
 
     } catch (err) {
       console.error("ERROR DE LOGIN:", err);
