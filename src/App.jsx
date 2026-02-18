@@ -29,7 +29,6 @@ function App() {
         {/* RUTAS PÚBLICAS */}
         {/* ==================== */}
         <Route path="/Login" element={<Login />} />
-          <Route path="/" element={<Login />} /> {/* Raíz redirige al login */}
         <Route path="/login/cliente" element={<LoginCliente />} />
         <Route path="/preview/:clienteId" element={<PreviewPagePro />} />
         <Route path="/pagina/:clienteId" element={<PaginaPublicaPro />} />
@@ -48,7 +47,8 @@ function App() {
           }
         >
           <Route index element={<h2>Bienvenido al Inicio</h2>} />
-                <Route path="EmployeeList" element={<EmployeeList />} />
+          <Route path="Start" element={<h2>Bienvenido al Inicio</h2>} />
+          <Route path="EmployeeList" element={<EmployeeList />} />
           <Route path="ParametrosList" element={<ParametrosList />} />
           <Route path="UserList" element={<UserList />} />
           <Route path="ServiciosList" element={<ServiciosList />} />
