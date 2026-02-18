@@ -13,7 +13,7 @@ import {
   CircularProgress,
   Fade
 } from "@mui/material";
-import { useNavigate } from "react-router-dom"; // Importar useNavigate
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { API_BASE_URL } from "../config";
 
@@ -21,8 +21,6 @@ import PersonIcon from "@mui/icons-material/Person";
 import LockIcon from "@mui/icons-material/Lock";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
-
-// Logo - Usar un ícono en lugar de imagen para evitar errores
 import RestaurantMenuIcon from "@mui/icons-material/RestaurantMenu";
 
 const COLOR_PALETTE = {
@@ -37,7 +35,7 @@ const Login = () => {
   const [usuario, setUsuario] = useState("");
   const [password, setPassword] = useState("");
   const { login } = useAuth();
-  const navigate = useNavigate(); // Hook para navegación
+  const navigate = useNavigate();
 
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -79,44 +77,41 @@ const Login = () => {
         return;
       }
 
-     // Después de obtener el token exitosamente (data.token existe)
-if (data.token) {
-  // PASO 1: Guardar MANUALMENTE en localStorage (INMEDIATO)
-  localStorage.setItem('token', data.token);
-  localStorage.setItem('user', JSON.stringify({
-    usuario: usuario,
-    nombre: data.nombre || usuario,
-    rol: data.rol || "usuario"
-  }));
+      if (!data.token) {
+        setError("El servidor no envió un token válido.");
+        setLoading(false);
+        return;
+      }
 
-  // PASO 2: Actualizar contexto (si es necesario)
-  if (login) {
-    login(data.token, userData);
-  }
-
-  // PASO 3: Pequeño retraso y REDIRECCIÓN FORZADA
-  setTimeout(() => {
-    console.log("🔄 Redirigiendo a /start");
-    window.location.href = '/start'; // ← ESTO FUNCIONA SIEMPRE
-  }, 150);
-}
-
+      // ✅ ÚNICO BLOQUE DE REDIRECCIÓN - CORREGIDO
       const userData = {
         token: data.token,
         usuario: data.usuario || usuario,
         nombre: data.nombre || data.usuario || usuario,
-        rol: data.rol || "",
-        idusuario: data.idusuario || data.idUsuario || data.id,
-        idempleado: data.idempleado || data.idEmpleado,
-        ...data
+        rol: data.rol || "usuario",
+        idusuario: data.idusuario || data.idUsuario || data.id || 1,
+        idempleado: data.idempleado || data.idEmpleado || null
       };
 
-      // Guardar en el contexto de autenticación
-      login(userData.token, userData);
-      
-      // Usar navigate en lugar de window.location
-      navigate('/start', { replace: true });
-      
+      // 1. Guardar en localStorage (inmediato)
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify({
+        usuario: usuario,
+        nombre: userData.nombre,
+        rol: userData.rol
+      }));
+
+      // 2. Actualizar contexto (si existe)
+      if (login) {
+        login(data.token, userData);
+      }
+
+      // 3. Redirección que funciona en TODOS lados
+      setTimeout(() => {
+        console.log("🔄 Redirigiendo a /start");
+        window.location.href = '/start';
+      }, 150);
+
     } catch (err) {
       console.error("ERROR DE LOGIN:", err);
       setError("No se pudo conectar con el servidor. Inténtalo más tarde.");
@@ -160,7 +155,7 @@ if (data.token) {
               }
             }}
           >
-            {/* LOGO CON ÍCONO EN LUGAR DE IMAGEN */}
+            {/* LOGO */}
             <Box sx={{ 
               display: "flex", 
               justifyContent: "center",
@@ -205,7 +200,6 @@ if (data.token) {
               Sistema de Gestión
             </Typography>
 
-            {/* MENSAJE DE ERROR */}
             {error && (
               <Alert 
                 severity="error" 
@@ -220,7 +214,6 @@ if (data.token) {
               </Alert>
             )}
 
-            {/* FORMULARIO */}
             <Box component="form" onSubmit={handleSubmit} sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
               <TextField
                 label="Usuario"
