@@ -112,6 +112,7 @@ export default function LoginCliente() {
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
+          'ngrok-skip-browser-warning': 'true' // <--- AÑADE ESTA LÍNEA
         },
         body: JSON.stringify(loginData),
         signal: controller.signal,
