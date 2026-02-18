@@ -83,7 +83,7 @@ const Login = () => {
         return;
       }
 
-      // ✅ ÚNICO BLOQUE DE REDIRECCIÓN - CORREGIDO
+      // ✅ CONSTRUIR DATOS DEL USUARIO
       const userData = {
         token: data.token,
         usuario: data.usuario || usuario,
@@ -93,7 +93,7 @@ const Login = () => {
         idempleado: data.idempleado || data.idEmpleado || null
       };
 
-      // 1. Guardar en localStorage (inmediato)
+      // ✅ GUARDAR EN LOCALSTORAGE (SIEMPRE FUNCIONA)
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify({
         usuario: usuario,
@@ -101,15 +101,29 @@ const Login = () => {
         rol: userData.rol
       }));
 
-      // 2. Actualizar contexto (si existe)
+      // ✅ ACTUALIZAR CONTEXTO (SI EXISTE)
       if (login) {
         login(data.token, userData);
       }
 
-      // 3. Redirección que funciona en TODOS lados
+      // ✅ DETECTAR ENTORNO (PC vs CELULAR)
+      const isDevelopment = window.location.hostname === 'localhost' || 
+                           window.location.hostname.includes('127.0.0.1') ||
+                           window.location.hostname.includes('192.168.');
+      
+      console.log("🌍 Entorno:", isDevelopment ? "DESARROLLO (PC)" : "PRODUCCIÓN (CELULAR)");
+      
+      // ✅ REDIRECCIÓN INTELIGENTE
       setTimeout(() => {
-        console.log("🔄 Redirigiendo a /start");
-        window.location.href = '/start';
+        if (isDevelopment) {
+          // PC: navigate (sin recargar)
+          console.log("💻 PC: Redirigiendo con navigate");
+          navigate('/start', { replace: true });
+        } else {
+          // Celular: window.location (fuerza recarga)
+          console.log("📱 Celular: Redirigiendo con window.location");
+          window.location.href = '/start';
+        }
       }, 150);
 
     } catch (err) {
@@ -175,7 +189,7 @@ const Login = () => {
               </Box>
             </Box>
 
-            {/* TITULO */}
+            {/* TÍTULO */}
             <Typography 
               variant="h4"
               sx={{
@@ -200,6 +214,7 @@ const Login = () => {
               Sistema de Gestión
             </Typography>
 
+            {/* ERROR */}
             {error && (
               <Alert 
                 severity="error" 
@@ -214,6 +229,7 @@ const Login = () => {
               </Alert>
             )}
 
+            {/* FORMULARIO */}
             <Box component="form" onSubmit={handleSubmit} sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
               <TextField
                 label="Usuario"
@@ -288,6 +304,7 @@ const Login = () => {
               </Button>
             </Box>
 
+            {/* FOOTER */}
             <Box sx={{ mt: 4, pt: 2, borderTop: `1px solid ${COLOR_PALETTE.dark}10` }}>
               <Typography variant="caption" sx={{ color: COLOR_PALETTE.dark, opacity: 0.6 }}>
                 © {new Date().getFullYear()} Sistema Distels v1.0
