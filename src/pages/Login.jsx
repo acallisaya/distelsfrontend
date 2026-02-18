@@ -93,7 +93,7 @@ const Login = () => {
         usuario: data.usuario || usuario,
         nombre: data.nombre || data.usuario || usuario,
         rol: data.rol || "",
-        idusuario: data.idusuario || data.idUsuario || data.id,
+        idusuario: data.idusuario || data.idUsuario || data.id||1,
         idempleado: data.idempleado || data.idEmpleado,
         ...data
       };
