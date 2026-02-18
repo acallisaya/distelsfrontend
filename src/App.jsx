@@ -1,6 +1,6 @@
 import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import ProtectedRoute from "./components/ProtectedRoute";
+
 import Login from "./pages/Login";
 import Start from "./pages/Start";
 import EmployeeList from "./pages/EmployeeList";
@@ -41,9 +41,9 @@ function App() {
         <Route
           path="/"
           element={
-            <ProtectedRoute>
+           
               <Start />
-            </ProtectedRoute>
+           
           }
         >
           <Route index element={<h2>Bienvenido al Inicio</h2>} />
