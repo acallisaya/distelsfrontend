@@ -24,7 +24,7 @@ import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import RestaurantIcon from "@mui/icons-material/Restaurant";
 
 // IMPORT CORRECTO DEL LOGO (funciona en desarrollo y producción)
-import logo from "../assets/distelslogo.png";
+
 
 // Definición de colores para consistencia con el sistema
 const COLOR_PALETTE = {
@@ -93,7 +93,7 @@ const Login = () => {
         usuario: data.usuario || usuario,
         nombre: data.nombre || data.usuario || usuario,
         rol: data.rol || "",
-        idusuario: data.idusuario || data.idUsuario || data.id||1,
+        idusuario: data.idusuario || data.idUsuario || data.id,
         idempleado: data.idempleado || data.idEmpleado,
         ...data
       };
