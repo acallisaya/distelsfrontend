@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState } from "react"; // 👈 Eliminamos useEffect
 import Logo from "../assets/distelslogo.png";
 import {
   AppBar,
@@ -19,7 +19,7 @@ import {
   Avatar,
   Chip,
   Container
-} from "@mui/material";
+} from "@mui/material"; // 👈 Eliminamos CircularProgress
 
 import MenuIcon from "@mui/icons-material/Menu";
 
@@ -31,14 +31,14 @@ import PhoneIcon from "@mui/icons-material/Phone";
 import QrCodeIcon from "@mui/icons-material/QrCode";
 import CardGiftcardIcon from "@mui/icons-material/CardGiftcard";
 import VideocamIcon from "@mui/icons-material/Videocam";
-import LogoutIcon from "@mui/icons-material/Logout";
+import LogoutIcon from "@mui/icons-material/Logout"; // Para cerrar sesión
 
 import { useAuth } from "../hooks/useAuth";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 
 const COLOR_PALETTE = {
-  primary: "#1E4B8B",
-  secondary: "#AA1B2B",
+  primary: "#667eea",
+  secondary: "#f5576c",
   accent: "#EAB126",
   dark: "#040404",
   success: "#4caf50",
@@ -48,7 +48,7 @@ const COLOR_PALETTE = {
 
 const Start = () => {
   const [open, setOpen] = useState(false);
-  const { user, logout } = useAuth();
+  const { user, logout } = useAuth(); // 👈 Eliminamos loading
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -73,27 +73,23 @@ const Start = () => {
   ];
 
   const getDisplayName = () => {
-    try {
-      // Intentar obtener del hook primero
-      if (user?.nombre) return user.nombre;
-      if (user?.usuario) return user.usuario;
-      
-      // Si no, buscar en localStorage
+    if (!user) {
       const userStr = localStorage.getItem('user');
       if (userStr) {
-        const userData = JSON.parse(userStr);
-        return userData.nombre || userData.usuario || "Usuario";
+        try {
+          const userData = JSON.parse(userStr);
+          return userData.nombre || userData.usuario || "Usuario";
+        } catch {
+          return "Usuario";
+        }
       }
-      
-      // Último recurso
-      return "Usuario";
-    } catch {
       return "Usuario";
     }
+    return user.nombre || user.usuario || "Usuario";
   };
 
   const getAvatarColor = (nombre) => {
-    const colors = ['#1E4B8B', '#AA1B2B', '#EAB126', '#4caf50', '#2196f3'];
+    const colors = ['#667eea', '#764ba2', '#f093fb', '#f5576c', '#4facfe'];
     if (!nombre) return colors[0];
     let hash = 0;
     for (let i = 0; i < nombre.length; i++) {
@@ -125,7 +121,7 @@ const Start = () => {
               fontWeight: 'bold'
             }}
           >
-            {getDisplayName().charAt(0).toUpperCase()}
+            {getDisplayName().charAt(0)}
           </Avatar>
           <Box>
             <Typography variant="h5" fontWeight="bold">
@@ -265,7 +261,7 @@ const Start = () => {
                   bgcolor: getAvatarColor(getDisplayName()),
                   fontSize: '0.75rem'
                 }}>
-                  {getDisplayName().charAt(0).toUpperCase()}
+                  {getDisplayName().charAt(0)}
                 </Avatar>
               }
               sx={{
