@@ -15,7 +15,8 @@ import {
   CircularProgress,
   Fade,
   alpha,
-  Grow
+  Grow,
+  Collapse
 } from '@mui/material';
 import {
   Person,
@@ -25,7 +26,9 @@ import {
   Login,
   Business,
   Shield,
-  Fingerprint
+  Fingerprint,
+  ErrorOutline,
+  Info
 } from '@mui/icons-material';
 import { API_BASE_URL } from '../config';
 
@@ -36,6 +39,7 @@ export default function LoginCliente() {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [debugInfo, setDebugInfo] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
   const [focusedField, setFocusedField] = useState(null);
   const [animate, setAnimate] = useState(false);
@@ -43,6 +47,10 @@ export default function LoginCliente() {
 
   useEffect(() => {
     setAnimate(true);
+    // Limpiar cualquier sesión anterior al cargar la página de login
+    localStorage.removeItem('clienteSession');
+    localStorage.removeItem('clienteToken');
+    localStorage.removeItem('clienteData');
   }, []);
 
   const handleChange = (e) => {
@@ -52,6 +60,7 @@ export default function LoginCliente() {
       [name]: value
     }));
     if (error) setError('');
+    if (debugInfo) setDebugInfo(null);
   };
 
   const validateForm = () => {
@@ -61,6 +70,10 @@ export default function LoginCliente() {
     }
     if (!formData.contrasena) {
       setError('Ingresa tu contraseña');
+      return false;
+    }
+    if (formData.contrasena.length < 4) {
+      setError('La contraseña debe tener al menos 4 caracteres');
       return false;
     }
     return true;
@@ -73,45 +86,86 @@ export default function LoginCliente() {
     
     setLoading(true);
     setError('');
+    setDebugInfo(null);
 
     try {
+      console.log('🔑 Intentando login con:', { 
+        usuario: formData.usuario,
+        contrasena: '****' 
+      });
+      
+      console.log('🌐 API URL:', `${API_BASE_URL}/Clientes/login-cliente`);
+
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000);
+      const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+      // Preparar los datos exactamente como los espera el servidor
+      const loginData = {
+        usuario: formData.usuario.trim(),
+        contrasena: formData.contrasena
+      };
+
+      console.log('📤 Enviando datos:', loginData);
 
       const res = await fetch(`${API_BASE_URL}/Clientes/login-cliente`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json',
         },
-        body: JSON.stringify({
-          usuario: formData.usuario,
-          contrasena: formData.contrasena
-        }),
-        signal: controller.signal
+        body: JSON.stringify(loginData),
+        signal: controller.signal,
+        credentials: 'include' // Importante para cookies/sesiones
       });
       
       clearTimeout(timeoutId);
 
+      console.log('📥 Respuesta recibida:', {
+        status: res.status,
+        statusText: res.statusText,
+        headers: Object.fromEntries(res.headers.entries())
+      });
+
+      // Intentar obtener el cuerpo de la respuesta
+      let data;
+      const contentType = res.headers.get('content-type');
+      
+      if (contentType && contentType.includes('application/json')) {
+        data = await res.json();
+        console.log('📦 Datos de respuesta:', data);
+      } else {
+        const text = await res.text();
+        console.log('📄 Respuesta no JSON:', text);
+        throw new Error(`Respuesta inválida del servidor: ${text.substring(0, 100)}`);
+      }
+
       if (!res.ok) {
-        throw new Error(`Error: ${res.status}`);
+        // Si es 401, mostrar mensaje más específico
+        if (res.status === 401) {
+          throw new Error(data.message || 'Usuario o contraseña incorrectos');
+        } else {
+          throw new Error(data.message || `Error del servidor: ${res.status}`);
+        }
       }
       
-      const data = await res.json();
-      
+      // Verificar que la respuesta tenga el formato esperado
       if (!data.success) {
-        throw new Error(data.message || 'Credenciales incorrectas');
+        throw new Error(data.message || 'Error en la autenticación');
+      }
+
+      if (!data.cliente || !data.cliente.id) {
+        throw new Error('Respuesta inválida: datos de cliente incompletos');
       }
       
-      // Guardar información
-      if (data.token) {
-        localStorage.setItem('clienteToken', data.token);
-      }
-      
+      console.log('✅ Login exitoso:', data);
+
+      // Guardar información de sesión
       const sessionData = {
-        id: data.cliente?.id,
-        nombre: data.cliente?.nombre,
-        usuario: data.cliente?.usuario,
-        celular: data.cliente?.celular,
+        id: data.cliente.id,
+        nombre: data.cliente.nombre,
+        usuario: data.cliente.usuario,
+        celular: data.cliente.celular,
+        email: data.cliente.email,
         token: data.token,
         loggedIn: true,
         timestamp: new Date().getTime()
@@ -119,21 +173,48 @@ export default function LoginCliente() {
       
       localStorage.setItem('clienteSession', JSON.stringify(sessionData));
       
+      if (data.token) {
+        localStorage.setItem('clienteToken', data.token);
+      }
+      
       if (data.cliente) {
         localStorage.setItem('clienteData', JSON.stringify(data.cliente));
       }
       
-      // Redirección suave
+      // Mostrar mensaje de éxito breve
+      setDebugInfo({
+        type: 'success',
+        message: '¡Login exitoso! Redirigiendo...'
+      });
+
+      // Redirección después de un breve delay
       setTimeout(() => {
         navigate(`/cliente/dashboard/${data.cliente.id}`);
-      }, 300);
+      }, 1000);
       
     } catch (err) {
-      const errorMessage = err.name === 'AbortError' 
-        ? 'Error de conexión'
-        : err.message || 'Error en el inicio de sesión';
+      console.error('❌ Error en login:', err);
+      
+      let errorMessage = '';
+      
+      if (err.name === 'AbortError') {
+        errorMessage = '⏱️ Tiempo de espera agotado. Verifica tu conexión.';
+      } else if (err.message.includes('Failed to fetch')) {
+        errorMessage = '🔌 No se pudo conectar al servidor. Verifica que el backend esté funcionando.';
+      } else {
+        errorMessage = err.message || 'Error en el inicio de sesión';
+      }
       
       setError(errorMessage);
+      
+      // Guardar información de depuración
+      setDebugInfo({
+        type: 'error',
+        message: err.message,
+        stack: err.stack,
+        url: `${API_BASE_URL}/Clientes/login-cliente`
+      });
+      
     } finally {
       setLoading(false);
     }
@@ -143,6 +224,14 @@ export default function LoginCliente() {
     if (e.key === 'Enter' && !loading) {
       handleSubmit(e);
     }
+  };
+
+  // Función para probar credenciales de ejemplo (solo para desarrollo)
+  const fillTestCredentials = () => {
+    setFormData({
+      usuario: 'test',
+      contrasena: '123456'
+    });
   };
 
   return (
@@ -167,24 +256,9 @@ export default function LoginCliente() {
             inset 0 1px 0 rgba(255, 255, 255, 0.3)
           `,
           position: 'relative',
-          overflow: 'hidden',
-          '&::before': {
-            content: '""',
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            height: '4px',
-            background: 'linear-gradient(90deg, #667eea, #764ba2, #667eea)',
-            backgroundSize: '200% 100%',
-            animation: 'shine 3s linear infinite'
-          },
-          '@keyframes shine': {
-            '0%': { backgroundPosition: '-200% 0' },
-            '100%': { backgroundPosition: '200% 0' }
-          }
+          overflow: 'hidden'
         }}>
-          {/* Encabezado compacto */}
+          {/* Encabezado */}
           <Box sx={{ textAlign: 'center', mb: 4 }}>
             <Avatar sx={{ 
               width: 70, 
@@ -203,7 +277,6 @@ export default function LoginCliente() {
               background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
               fontSize: '1.75rem'
             }}>
               Acceso Cliente
@@ -218,30 +291,49 @@ export default function LoginCliente() {
           </Box>
 
           {/* Mensaje de error */}
-          {error && (
-            <Fade in={!!error}>
+          <Collapse in={!!error}>
+            <Alert 
+              severity="error" 
+              sx={{ 
+                mb: 3,
+                borderRadius: 2,
+                py: 1,
+                fontSize: '0.85rem',
+                backgroundColor: alpha('#f44336', 0.08),
+                border: '1px solid',
+                borderColor: alpha('#f44336', 0.2)
+              }}
+              icon={<ErrorOutline fontSize="small" />}
+            >
+              {error}
+            </Alert>
+          </Collapse>
+
+          {/* Información de depuración (solo en desarrollo) */}
+          {process.env.NODE_ENV === 'development' && debugInfo && (
+            <Collapse in={!!debugInfo}>
               <Alert 
-                severity="error" 
+                severity={debugInfo.type || 'info'}
                 sx={{ 
                   mb: 3,
                   borderRadius: 2,
-                  py: 0.5,
-                  fontSize: '0.85rem',
-                  backgroundColor: alpha('#f44336', 0.08),
-                  border: '1px solid',
-                  borderColor: alpha('#f44336', 0.2),
-                  '& .MuiAlert-icon': {
-                    padding: '8px 0'
-                  }
+                  py: 1,
+                  fontSize: '0.8rem',
+                  fontFamily: 'monospace'
                 }}
-                icon={<Fingerprint fontSize="small" />}
+                icon={<Info fontSize="small" />}
               >
-                {error}
+                <strong>Debug:</strong> {debugInfo.message}
+                {debugInfo.url && (
+                  <Box component="div" sx={{ mt: 0.5, opacity: 0.8 }}>
+                    URL: {debugInfo.url}
+                  </Box>
+                )}
               </Alert>
-            </Fade>
+            </Collapse>
           )}
 
-          {/* Formulario compacto */}
+          {/* Formulario */}
           <form onSubmit={handleSubmit}>
             {/* Campo Usuario */}
             <Box sx={{ mb: 3 }}>
@@ -257,6 +349,7 @@ export default function LoginCliente() {
                 required
                 disabled={loading}
                 size="small"
+                autoComplete="username"
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
@@ -282,18 +375,6 @@ export default function LoginCliente() {
                         borderColor: '#667eea',
                         borderWidth: 2
                       }
-                    },
-                    '&:hover': {
-                      backgroundColor: 'white',
-                      '& fieldset': {
-                        borderColor: alpha('#667eea', 0.5)
-                      }
-                    }
-                  },
-                  '& .MuiInputLabel-root': {
-                    fontSize: '0.9rem',
-                    '&.Mui-focused': {
-                      color: '#667eea'
                     }
                   }
                 }}
@@ -315,6 +396,7 @@ export default function LoginCliente() {
                 required
                 disabled={loading}
                 size="small"
+                autoComplete="current-password"
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
@@ -359,25 +441,13 @@ export default function LoginCliente() {
                         borderColor: '#667eea',
                         borderWidth: 2
                       }
-                    },
-                    '&:hover': {
-                      backgroundColor: 'white',
-                      '& fieldset': {
-                        borderColor: alpha('#667eea', 0.5)
-                      }
-                    }
-                  },
-                  '& .MuiInputLabel-root': {
-                    fontSize: '0.9rem',
-                    '&.Mui-focused': {
-                      color: '#667eea'
                     }
                   }
                 }}
               />
             </Box>
             
-            {/* Botón compacto */}
+            {/* Botón principal */}
             <Button
               type="submit"
               variant="contained"
@@ -397,43 +467,34 @@ export default function LoginCliente() {
                 letterSpacing: '0.3px',
                 background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                 boxShadow: '0 4px 15px rgba(102, 126, 234, 0.3)',
-                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                position: 'relative',
-                overflow: 'hidden',
+                transition: 'all 0.3s ease',
                 '&:hover': {
                   transform: 'translateY(-2px)',
                   boxShadow: '0 8px 25px rgba(102, 126, 234, 0.4)',
-                  background: 'linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%)',
-                },
-                '&:active': {
-                  transform: 'translateY(0)',
-                  boxShadow: '0 3px 10px rgba(102, 126, 234, 0.3)',
                 },
                 '&:disabled': {
                   background: alpha('#667eea', 0.4),
-                  transform: 'none',
-                  boxShadow: 'none'
-                },
-                '&::after': {
-                  content: '""',
-                  position: 'absolute',
-                  top: 0,
-                  left: '-100%',
-                  width: '100%',
-                  height: '100%',
-                  background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent)',
-                  transition: 'left 0.6s ease'
-                },
-                '&:hover::after': {
-                  left: '100%'
+                  transform: 'none'
                 }
               }}
             >
               {loading ? 'VERIFICANDO...' : 'INGRESAR'}
             </Button>
+
+            {/* Botón de prueba (solo desarrollo) */}
+            {process.env.NODE_ENV === 'development' && (
+              <Button
+                fullWidth
+                size="small"
+                onClick={fillTestCredentials}
+                sx={{ mt: 2, fontSize: '0.8rem' }}
+              >
+                Usar credenciales de prueba
+              </Button>
+            )}
           </form>
 
-          {/* Footer minimalista */}
+          {/* Footer */}
           <Fade in={animate} timeout={800}>
             <Box sx={{ 
               mt: 4, 

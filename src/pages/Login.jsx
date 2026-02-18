@@ -15,7 +15,7 @@ import {
 
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
-import { API_BASE_URL } from "../config";  // Solo necesitas API_BASE_URL
+import { API_BASE_URL } from "../config";
 
 import PersonIcon from "@mui/icons-material/Person";
 import LockIcon from "@mui/icons-material/Lock";
@@ -75,6 +75,7 @@ const Login = () => {
       });
 
       const data = await res.json();
+      console.log("📥 LOGIN → Respuesta del servidor:", data);
 
       if (!res.ok) {
         setError(data.message || "Credenciales incorrectas.");
@@ -88,18 +89,30 @@ const Login = () => {
         return;
       }
 
+      // Construir objeto de usuario con valores por defecto
       const userData = {
         token: data.token,
-        usuario: data.usuario || usuario,
-        nombre: data.nombre || data.usuario || usuario,
-        rol: data.rol || "",
-        idusuario: data.idusuario || data.idUsuario || data.id||1,
-        idempleado: data.idempleado || data.idEmpleado,
+        usuario: data.usuario || usuario, // Usar el ingresado si viene vacío
+        nombre: data.nombre || data.nombreCompleto || data.usuario || usuario,
+        rol: data.rol || "usuario", // Rol por defecto
+        idusuario: data.idusuario || data.idUsuario || data.id || 1, // 👈 VALOR POR DEFECTO 1
+        idempleado: data.idempleado || data.idEmpleado || null,
         ...data
       };
 
-      login(userData.token, userData);
-      navigate("/Start", { replace: true });
+      console.log("👤 userData construido:", userData);
+
+      // Guardar en localStorage primero (respaldo)
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(userData));
+      
+      // Llamar al login del contexto
+      login(data.token, userData);
+      
+      // Pequeño delay para asegurar que se guardó
+      setTimeout(() => {
+        navigate("/Start", { replace: true });
+      }, 100);
 
     } catch (err) {
       console.error("ERROR DE LOGIN:", err);
@@ -158,7 +171,7 @@ const Login = () => {
             }}
           >
 
-            {/* LOGO CON FONDO CIRCULAR - AHORA FUNCIONA EN AMBOS ENTORNOS */}
+            {/* LOGO CON FONDO CIRCULAR */}
             <Box sx={{ 
               display: "flex", 
               justifyContent: "center",
@@ -174,7 +187,15 @@ const Login = () => {
                 boxShadow: `0 6px 16px ${COLOR_PALETTE.primary}40`,
                 border: `3px solid ${COLOR_PALETTE.accent}`
               }}>
-               
+                <img 
+                  src={logo} 
+                  alt="Distels Logo" 
+                  style={{ 
+                    width: '80%', 
+                    height: '80%', 
+                    objectFit: 'contain' 
+                  }} 
+                />
               </Box>
             </Box>
 
@@ -329,10 +350,7 @@ const Login = () => {
                 {loading ? (
                   <CircularProgress size={24} sx={{ color: "white" }} />
                 ) : (
-                  <>
-                    
-                    Ingresar al Sistema
-                  </>
+                  "Ingresar al Sistema"
                 )}
               </Button>
 
