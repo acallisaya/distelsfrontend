@@ -79,11 +79,27 @@ const Login = () => {
         return;
       }
 
-      if (!data.token) {
-        setError("El servidor no envió un token válido.");
-        setLoading(false);
-        return;
-      }
+     // Después de obtener el token exitosamente (data.token existe)
+if (data.token) {
+  // PASO 1: Guardar MANUALMENTE en localStorage (INMEDIATO)
+  localStorage.setItem('token', data.token);
+  localStorage.setItem('user', JSON.stringify({
+    usuario: usuario,
+    nombre: data.nombre || usuario,
+    rol: data.rol || "usuario"
+  }));
+
+  // PASO 2: Actualizar contexto (si es necesario)
+  if (login) {
+    login(data.token, userData);
+  }
+
+  // PASO 3: Pequeño retraso y REDIRECCIÓN FORZADA
+  setTimeout(() => {
+    console.log("🔄 Redirigiendo a /start");
+    window.location.href = '/start'; // ← ESTO FUNCIONA SIEMPRE
+  }, 150);
+}
 
       const userData = {
         token: data.token,
