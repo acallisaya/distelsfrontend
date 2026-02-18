@@ -1,3 +1,4 @@
+// Login.js - Sistema Administrativo
 import React, { useState } from "react";
 import {
   TextField,
@@ -12,39 +13,35 @@ import {
   CircularProgress,
   Fade
 } from "@mui/material";
-
-
+import { useNavigate } from "react-router-dom"; // Importar useNavigate
 import { useAuth } from "../hooks/useAuth";
-import { API_BASE_URL } from "../config";  // Solo necesitas API_BASE_URL
+import { API_BASE_URL } from "../config";
 
 import PersonIcon from "@mui/icons-material/Person";
 import LockIcon from "@mui/icons-material/Lock";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
-import RestaurantIcon from "@mui/icons-material/Restaurant";
 
-// IMPORT CORRECTO DEL LOGO (funciona en desarrollo y producción)
+// Logo - Usar un ícono en lugar de imagen para evitar errores
+import RestaurantMenuIcon from "@mui/icons-material/RestaurantMenu";
 
-
-// Definición de colores para consistencia con el sistema
 const COLOR_PALETTE = {
-  primary: "#1E4B8B",     // Azul principal
-  secondary: "#AA1B2B",   // Rojo secundario
-  accent: "#EAB126",      // Amarillo acento
-  dark: "#040404",        // Negro
-  brown: "#602C27"        // Marrón
+  primary: "#1E4B8B",
+  secondary: "#AA1B2B",
+  accent: "#EAB126",
+  dark: "#040404",
+  brown: "#602C27"
 };
 
 const Login = () => {
   const [usuario, setUsuario] = useState("");
   const [password, setPassword] = useState("");
   const { login } = useAuth();
+  const navigate = useNavigate(); // Hook para navegación
 
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-
-
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -98,9 +95,12 @@ const Login = () => {
         ...data
       };
 
+      // Guardar en el contexto de autenticación
       login(userData.token, userData);
-     window.location.href = '/Start';
-
+      
+      // Usar navigate en lugar de window.location
+      navigate('/Start', { replace: true });
+      
     } catch (err) {
       console.error("ERROR DE LOGIN:", err);
       setError("No se pudo conectar con el servidor. Inténtalo más tarde.");
@@ -111,7 +111,6 @@ const Login = () => {
   return (
     <>
       <CssBaseline />
-
       <Box
         sx={{
           height: "100vh",
@@ -120,11 +119,6 @@ const Login = () => {
           justifyContent: "center",
           alignItems: "center",
           background: `linear-gradient(135deg, ${COLOR_PALETTE.primary} 0%, ${COLOR_PALETTE.secondary} 50%, ${COLOR_PALETTE.accent} 100%)`,
-          animation: "fadeIn 1.2s ease",
-          "@keyframes fadeIn": {
-            from: { opacity: 0 },
-            to: { opacity: 1 }
-          }
         }}
       >
         <Fade in={true} timeout={800}>
@@ -137,13 +131,6 @@ const Login = () => {
               textAlign: "center",
               borderRadius: 3,
               backgroundColor: "white",
-              boxShadow: `0 12px 32px ${COLOR_PALETTE.dark}40`,
-              animation: "slideUp 0.8s ease",
-              "@keyframes slideUp": {
-                from: { transform: "translateY(30px)", opacity: 0 },
-                to: { transform: "translateY(0)", opacity: 1 }
-              },
-              border: `1px solid ${COLOR_PALETTE.primary}20`,
               position: "relative",
               overflow: "hidden",
               '&::before': {
@@ -157,8 +144,7 @@ const Login = () => {
               }
             }}
           >
-
-            {/* LOGO CON FONDO CIRCULAR - AHORA FUNCIONA EN AMBOS ENTORNOS */}
+            {/* LOGO CON ÍCONO EN LUGAR DE IMAGEN */}
             <Box sx={{ 
               display: "flex", 
               justifyContent: "center",
@@ -171,10 +157,10 @@ const Login = () => {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                boxShadow: `0 6px 16px ${COLOR_PALETTE.primary}40`,
+                background: `linear-gradient(135deg, ${COLOR_PALETTE.primary}20, ${COLOR_PALETTE.secondary}20)`,
                 border: `3px solid ${COLOR_PALETTE.accent}`
               }}>
-               
+                <RestaurantMenuIcon sx={{ fontSize: 50, color: COLOR_PALETTE.primary }} />
               </Box>
             </Box>
 
@@ -186,8 +172,7 @@ const Login = () => {
                 background: `linear-gradient(90deg, ${COLOR_PALETTE.primary}, ${COLOR_PALETTE.secondary})`,
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
-                mb: 1,
-                fontSize: { xs: "1.8rem", sm: "2rem" }
+                mb: 1
               }}
             >
               Bienvenido
@@ -198,8 +183,7 @@ const Login = () => {
               sx={{ 
                 mb: 3, 
                 color: COLOR_PALETTE.dark,
-                opacity: 0.7,
-                fontSize: "0.95rem"
+                opacity: 0.7
               }}
             >
               Sistema de Gestión
@@ -212,13 +196,8 @@ const Login = () => {
                 sx={{
                   mb: 3,
                   borderRadius: 2,
-                  fontSize: "0.9rem",
                   backgroundColor: `${COLOR_PALETTE.secondary}15`,
-                  border: `1px solid ${COLOR_PALETTE.secondary}30`,
-                  color: COLOR_PALETTE.secondary,
-                  '& .MuiAlert-icon': {
-                    color: COLOR_PALETTE.secondary
-                  }
+                  border: `1px solid ${COLOR_PALETTE.secondary}30`
                 }}
               >
                 {error}
@@ -227,7 +206,6 @@ const Login = () => {
 
             {/* FORMULARIO */}
             <Box component="form" onSubmit={handleSubmit} sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
-
               <TextField
                 label="Usuario"
                 type="text"
@@ -242,18 +220,6 @@ const Login = () => {
                       <PersonIcon sx={{ color: COLOR_PALETTE.primary }} />
                     </InputAdornment>
                   ),
-                }}
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: 2,
-                    '&:hover fieldset': {
-                      borderColor: COLOR_PALETTE.primary,
-                    },
-                    '&.Mui-focused fieldset': {
-                      borderColor: COLOR_PALETTE.primary,
-                      borderWidth: 2
-                    }
-                  }
                 }}
               />
 
@@ -276,7 +242,6 @@ const Login = () => {
                       <IconButton 
                         onClick={() => setShowPassword(!showPassword)} 
                         disabled={loading}
-                        sx={{ color: COLOR_PALETTE.dark }}
                         size="small"
                       >
                         {showPassword ? <VisibilityOff /> : <Visibility />}
@@ -284,21 +249,8 @@ const Login = () => {
                     </InputAdornment>
                   ),
                 }}
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: 2,
-                    '&:hover fieldset': {
-                      borderColor: COLOR_PALETTE.primary,
-                    },
-                    '&.Mui-focused fieldset': {
-                      borderColor: COLOR_PALETTE.primary,
-                      borderWidth: 2
-                    }
-                  }
-                }}
               />
 
-              {/* BOTÓN DE INGRESO */}
               <Button
                 type="submit"
                 variant="contained"
@@ -311,17 +263,10 @@ const Login = () => {
                   fontWeight: 700,
                   borderRadius: 2,
                   background: `linear-gradient(90deg, ${COLOR_PALETTE.primary}, ${COLOR_PALETTE.secondary})`,
-                  color: "white",
                   textTransform: "none",
-                  boxShadow: `0 4px 12px ${COLOR_PALETTE.primary}40`,
                   "&:hover": {
                     background: `linear-gradient(90deg, ${COLOR_PALETTE.primary}DD, ${COLOR_PALETTE.secondary}DD)`,
-                    boxShadow: `0 6px 16px ${COLOR_PALETTE.primary}60`,
                     transform: "translateY(-2px)"
-                  },
-                  "&:disabled": {
-                    background: `${COLOR_PALETTE.dark}30`,
-                    color: `${COLOR_PALETTE.dark}50`
                   },
                   transition: "all 0.3s ease"
                 }}
@@ -329,40 +274,16 @@ const Login = () => {
                 {loading ? (
                   <CircularProgress size={24} sx={{ color: "white" }} />
                 ) : (
-                  <>
-                    
-                    Ingresar al Sistema
-                  </>
+                  "Ingresar al Sistema"
                 )}
               </Button>
-
             </Box>
 
-            {/* FOOTER DEL LOGIN */}
             <Box sx={{ mt: 4, pt: 2, borderTop: `1px solid ${COLOR_PALETTE.dark}10` }}>
-              <Typography 
-                variant="caption" 
-                sx={{ 
-                  color: COLOR_PALETTE.dark,
-                  opacity: 0.6,
-                  fontSize: "0.8rem"
-                }}
-              >
+              <Typography variant="caption" sx={{ color: COLOR_PALETTE.dark, opacity: 0.6 }}>
                 © {new Date().getFullYear()} Sistema Distels v1.0
               </Typography>
-              <Typography 
-                variant="caption" 
-                sx={{ 
-                  display: "block",
-                  mt: 0.5,
-                  color: COLOR_PALETTE.primary,
-                  fontSize: "0.8rem"
-                }}
-              >
-                Para uso exclusivo del personal autorizado
-              </Typography>
             </Box>
-
           </Paper>
         </Fade>
       </Box>
