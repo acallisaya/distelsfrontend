@@ -99,7 +99,7 @@ const Login = () => {
       login(userData.token, userData);
       
       // Usar navigate en lugar de window.location
-      navigate('/Start', { replace: true });
+      navigate('/start', { replace: true });
       
     } catch (err) {
       console.error("ERROR DE LOGIN:", err);
