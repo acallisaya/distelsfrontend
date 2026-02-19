@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 import Login from "./pages/Login";
 import Start from "./pages/Start";
@@ -20,6 +20,15 @@ import PlanesList from "./pages/PlanesList";
 import GenerarTarjetas from "./pages/GenerarTarjetas";
 import ActivacionClienteFinalPage from './pages/ActivacionClienteFinalPage';
 import CallCenterDashboard from './pages/call-center/CallCenterDashboard';
+import AuthGuard from './components/AuthGuard';
+
+// Componente Dashboard simple para la ruta index
+const Dashboard = () => (
+  <div style={{ padding: '20px' }}>
+    <h2>Bienvenido al Dashboard</h2>
+    <p>Selecciona una opción del menú</p>
+  </div>
+);
 
 function App() {
   return (
@@ -28,7 +37,7 @@ function App() {
         {/* ==================== */}
         {/* RUTAS PÚBLICAS */}
         {/* ==================== */}
-        <Route path="/Login" element={<Login />} />
+        <Route path="/login" element={<Login />} />
         <Route path="/login/cliente" element={<LoginCliente />} />
         <Route path="/preview/:clienteId" element={<PreviewPagePro />} />
         <Route path="/pagina/:clienteId" element={<PaginaPublicaPro />} />
@@ -41,24 +50,24 @@ function App() {
         <Route
           path="/"
           element={
-           
+            <AuthGuard>
               <Start />
-           
+            </AuthGuard>
           }
         >
-          <Route index element={<h2>Bienvenido al Inicio</h2>} />
-          <Route path="Start" element={<h2>Bienvenido al Inicio</h2>} />
-          <Route path="EmployeeList" element={<EmployeeList />} />
-          <Route path="ParametrosList" element={<ParametrosList />} />
-          <Route path="UserList" element={<UserList />} />
-          <Route path="ServiciosList" element={<ServiciosList />} />
-          <Route path="CuentasList" element={<CuentasList />} />
-          <Route path="ClientesListPro" element={<ClientesListPro />} />
-          <Route path="TarjetasList" element={<TarjetasList />} />
-          <Route path="PlanesList" element={<PlanesList />} />
+          <Route index element={<Dashboard />} />
+          <Route path="start" element={<Dashboard />} />
+          <Route path="servicioslist" element={<ServiciosList />} />
+          <Route path="planeslist" element={<PlanesList />} />
+          <Route path="clienteslistpro" element={<ClientesListPro />} />
+          <Route path="generartarjetas" element={<GenerarTarjetas />} />
+          <Route path="tarjetaslist" element={<TarjetasList />} />
           <Route path="callcenter" element={<CallCenterDashboard />} />
-          <Route path="GenerarTarjetas" element={<GenerarTarjetas />} />
-          <Route path="TiposParametros" element={<TiposParametros />} />
+          <Route path="tiposparametros" element={<TiposParametros />} />
+          <Route path="employeelist" element={<EmployeeList />} />
+          <Route path="parametroslist" element={<ParametrosList />} />
+          <Route path="userlist" element={<UserList />} />
+          <Route path="cuentaslist" element={<CuentasList />} />
         </Route>
         
         {/* ==================== */}
@@ -76,7 +85,7 @@ function App() {
         {/* ==================== */}
         {/* RUTA DE FALLBACK */}
         {/* ==================== */}
-        <Route path="*" element={<Login />} />
+        <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>
   );

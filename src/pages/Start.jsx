@@ -1,4 +1,4 @@
-// Start.js - Versión sin logo
+// Start.js - Versión final con rutas relativas
 import React, { useState, useEffect } from "react";
 import {
   AppBar,
@@ -12,10 +12,7 @@ import {
   CssBaseline,
   Box,
   Button,
-  Divider,
   ListItemIcon,
-  Card,
-  CardContent,
   Grid,
   Paper,
   Avatar,
@@ -25,28 +22,18 @@ import {
 
 import MenuIcon from "@mui/icons-material/Menu";
 
-// Íconos disponibles en MUI
+// Íconos
 import DashboardIcon from "@mui/icons-material/Dashboard";
-import FastfoodIcon from "@mui/icons-material/Fastfood";
-import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
 import PeopleAltIcon from "@mui/icons-material/PeopleAlt";
 import SettingsIcon from "@mui/icons-material/Settings";
 import PhoneIcon from "@mui/icons-material/Phone";
 import QrCodeIcon from "@mui/icons-material/QrCode";
 import CardGiftcardIcon from "@mui/icons-material/CardGiftcard";
-import VideocamIcon from "@mui/icons-material/Videocam"; // Para Streaming/Video
-import MovieIcon from "@mui/icons-material/Movie"; // Alternativa para servicios
-import TvIcon from "@mui/icons-material/Tv"; // Otra alternativa
-import StoreIcon from "@mui/icons-material/Store"; // Para clientes/servicios
-import WebIcon from "@mui/icons-material/Web"; // Para páginas web
-import AccountCircleIcon from "@mui/icons-material/AccountCircle"; // Para perfil
-import LogoutIcon from "@mui/icons-material/Logout"; // Para cerrar sesión
-import HomeIcon from "@mui/icons-material/Home"; // Para inicio
+import VideocamIcon from "@mui/icons-material/Videocam";
 
 import { useAuth } from "../hooks/useAuth";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 
-// Definición de colores consistente
 const COLOR_PALETTE = {
   primary: "#667eea",
   secondary: "#f5576c",
@@ -65,25 +52,26 @@ const Start = () => {
 
   useEffect(() => {
     console.log("User:", user);
-  }, [user]);
+    console.log("Location:", location.pathname);
+  }, [user, location]);
 
   const toggleDrawer = (state) => () => setOpen(state);
 
   const handleLogout = () => {
     logout();
-    navigate("/", { replace: true });
+    navigate("/login", { replace: true });
   };
 
-  // --- MENÚ CON ICONOS DISPONIBLES ---
+  // MENÚ CON RUTAS RELATIVAS
   const menuItems = [
-    { text: "Dashboard", path: "/Start", icon: <DashboardIcon /> },
-    { text: "Servicios", path: "/ServiciosList", icon: <VideocamIcon /> },
-    { text: "Planes", path: "/PlanesList", icon: <CardGiftcardIcon /> },
-    { text: "Clientes", path: "/ClientesListPro", icon: <PeopleAltIcon /> },
-    { text: "Generar Tarjetas", path: "/GenerarTarjetas", icon: <QrCodeIcon /> },
-    { text: "Tarjetas", path: "/TarjetasList", icon: <CardGiftcardIcon /> },
-    { text: "Call Center IA", path: "/callcenter", icon: <PhoneIcon /> },
-    { text: "Configuraciones", path: "/TiposParametros", icon: <SettingsIcon /> }
+    { text: "Dashboard", path: "start", icon: <DashboardIcon /> },
+    { text: "Servicios", path: "servicioslist", icon: <VideocamIcon /> },
+    { text: "Planes", path: "planeslist", icon: <CardGiftcardIcon /> },
+    { text: "Clientes", path: "clienteslistpro", icon: <PeopleAltIcon /> },
+    { text: "Generar Tarjetas", path: "generartarjetas", icon: <QrCodeIcon /> },
+    { text: "Tarjetas", path: "tarjetaslist", icon: <CardGiftcardIcon /> },
+    { text: "Call Center IA", path: "callcenter", icon: <PhoneIcon /> },
+    { text: "Configuraciones", path: "tiposparametros", icon: <SettingsIcon /> }
   ];
 
   const getDisplayName = () => {
@@ -101,10 +89,8 @@ const Start = () => {
     return colors[Math.abs(hash) % colors.length];
   };
 
-  // Dashboard actualizado con estilo compacto
   const Dashboard = () => (
     <Container maxWidth="xl" sx={{ py: 2 }}>
-      {/* Header del Dashboard */}
       <Paper
         sx={{
           p: 2,
@@ -132,13 +118,12 @@ const Start = () => {
               👋 ¡Bienvenido {getDisplayName()}!
             </Typography>
             <Typography variant="body2" sx={{ opacity: 0.9 }}>
-              Sistema completo: Streaming + Call Center IA con automatización
+              Sistema completo: Streaming + Call Center IA
             </Typography>
           </Box>
         </Box>
       </Paper>
 
-      {/* Estadísticas Rápidas */}
       <Grid container spacing={2} sx={{ mb: 3 }}>
         <Grid item xs={6} md={3}>
           <Paper sx={{
@@ -150,7 +135,6 @@ const Start = () => {
           }}>
             <VideocamIcon sx={{ fontSize: 30, color: COLOR_PALETTE.primary, mb: 1 }} />
             <Typography variant="h6" fontWeight="bold">Servicios</Typography>
-            <Typography variant="body2" color="text.secondary">Netflix, Disney+, etc.</Typography>
           </Paper>
         </Grid>
         <Grid item xs={6} md={3}>
@@ -163,7 +147,6 @@ const Start = () => {
           }}>
             <PeopleAltIcon sx={{ fontSize: 30, color: COLOR_PALETTE.success, mb: 1 }} />
             <Typography variant="h6" fontWeight="bold">Clientes</Typography>
-            <Typography variant="body2" color="text.secondary">Gestiona tus clientes</Typography>
           </Paper>
         </Grid>
         <Grid item xs={6} md={3}>
@@ -176,7 +159,6 @@ const Start = () => {
           }}>
             <CardGiftcardIcon sx={{ fontSize: 30, color: COLOR_PALETTE.info, mb: 1 }} />
             <Typography variant="h6" fontWeight="bold">Tarjetas</Typography>
-            <Typography variant="body2" color="text.secondary">Códigos y planes</Typography>
           </Paper>
         </Grid>
         <Grid item xs={6} md={3}>
@@ -189,12 +171,10 @@ const Start = () => {
           }}>
             <PhoneIcon sx={{ fontSize: 30, color: COLOR_PALETTE.warning, mb: 1 }} />
             <Typography variant="h6" fontWeight="bold">Call Center</Typography>
-            <Typography variant="body2" color="text.secondary">IA Automatizado</Typography>
           </Paper>
         </Grid>
       </Grid>
 
-      {/* Acciones Rápidas */}
       <Typography variant="h6" fontWeight="bold" gutterBottom sx={{ color: COLOR_PALETTE.dark, mb: 2 }}>
         ⚡ Acciones Rápidas
       </Typography>
@@ -213,7 +193,7 @@ const Start = () => {
               boxShadow: '0 4px 12px rgba(0,0,0,0.12)'
             }
           }}
-          onClick={() => navigate("/ServiciosList")}
+          onClick={() => navigate("servicioslist")}
           >
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
               <Avatar sx={{ bgcolor: COLOR_PALETTE.primary }}>
@@ -223,9 +203,6 @@ const Start = () => {
                 <Typography variant="subtitle1" fontWeight="bold">
                   Gestionar Servicios
                 </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Netflix, Disney+, HBO Max y más
-                </Typography>
               </Box>
             </Box>
           </Paper>
@@ -244,7 +221,7 @@ const Start = () => {
               boxShadow: '0 4px 12px rgba(0,0,0,0.12)'
             }
           }}
-          onClick={() => navigate("/callcenter")}
+          onClick={() => navigate("callcenter")}
           >
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
               <Avatar sx={{ bgcolor: COLOR_PALETTE.warning }}>
@@ -254,9 +231,6 @@ const Start = () => {
                 <Typography variant="subtitle1" fontWeight="bold">
                   Ir al Call Center IA
                 </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Llamadas automáticas con inteligencia artificial
-                </Typography>
               </Box>
             </Box>
           </Paper>
@@ -275,7 +249,7 @@ const Start = () => {
               boxShadow: '0 4px 12px rgba(0,0,0,0.12)'
             }
           }}
-          onClick={() => navigate("/ClientesListPro")}
+          onClick={() => navigate("clienteslistpro")}
           >
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
               <Avatar sx={{ bgcolor: COLOR_PALETTE.success }}>
@@ -285,9 +259,6 @@ const Start = () => {
                 <Typography variant="subtitle1" fontWeight="bold">
                   Ver Clientes
                 </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Administra tus clientes y páginas web
-                </Typography>
               </Box>
             </Box>
           </Paper>
@@ -306,7 +277,7 @@ const Start = () => {
               boxShadow: '0 4px 12px rgba(0,0,0,0.12)'
             }
           }}
-          onClick={() => navigate("/PlanesList")}
+          onClick={() => navigate("planeslist")}
           >
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
               <Avatar sx={{ bgcolor: COLOR_PALETTE.info }}>
@@ -316,16 +287,12 @@ const Start = () => {
                 <Typography variant="subtitle1" fontWeight="bold">
                   Crear Planes
                 </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Genera nuevos planes y tarjetas
-                </Typography>
               </Box>
             </Box>
           </Paper>
         </Grid>
       </Grid>
 
-      {/* Sistema de Accesos */}
       <Paper sx={{ p: 2, borderRadius: 2, mb: 3 }}>
         <Typography variant="h6" fontWeight="bold" gutterBottom sx={{ color: COLOR_PALETTE.dark }}>
           🔐 Sistema de Accesos
@@ -367,7 +334,6 @@ const Start = () => {
     <Box sx={{ display: "flex", bgcolor: `${COLOR_PALETTE.dark}05`, minHeight: '100vh' }}>
       <CssBaseline />
 
-      {/* APP BAR MEJORADA */}
       <AppBar position="fixed" sx={{
         background: `linear-gradient(90deg, ${COLOR_PALETTE.primary}, ${COLOR_PALETTE.secondary})`,
         boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
@@ -429,7 +395,6 @@ const Start = () => {
         </Toolbar>
       </AppBar>
 
-      {/* SIDEBAR MEJORADA - SIN LOGO */}
       <Drawer 
         open={open} 
         onClose={toggleDrawer(false)}
@@ -442,7 +407,6 @@ const Start = () => {
         }}
       >
         <Box sx={{ width: 240 }}>
-          {/* SOLO TÍTULO EN LUGAR DEL LOGO */}
           <Box sx={{ 
             textAlign: 'center', 
             py: 3,
@@ -464,50 +428,53 @@ const Start = () => {
             </Typography>
           </Box>
 
-          {/* MENÚ MEJORADO */}
           <List sx={{ p: 1 }}>
-            {menuItems.map((item, idx) => (
-              <ListItemButton 
-                key={idx} 
-                onClick={() => {
-                  navigate(item.path);
-                  setOpen(false);
-                }}
-                selected={location.pathname === item.path}
-                sx={{
-                  borderRadius: 1,
-                  mb: 0.5,
-                  py: 1,
-                  '&.Mui-selected': {
-                    backgroundColor: `${COLOR_PALETTE.primary}15`,
-                    borderLeft: `3px solid ${COLOR_PALETTE.primary}`,
-                    '&:hover': {
-                      backgroundColor: `${COLOR_PALETTE.primary}20`
-                    },
-                    '& .MuiListItemIcon-root': {
-                      color: COLOR_PALETTE.primary
-                    }
-                  }
-                }}
-              >
-                <ListItemIcon sx={{ 
-                  color: location.pathname === item.path ? COLOR_PALETTE.primary : COLOR_PALETTE.dark + '80',
-                  minWidth: 40
-                }}>
-                  {item.icon}
-                </ListItemIcon>
-                <ListItemText 
-                  primary={item.text} 
-                  primaryTypographyProps={{
-                    fontWeight: location.pathname === item.path ? 'bold' : 'normal',
-                    fontSize: '0.85rem'
+            {menuItems.map((item, idx) => {
+              const isSelected = location.pathname === `/${item.path}` || 
+                                (location.pathname === "/" && item.path === "start");
+              
+              return (
+                <ListItemButton 
+                  key={idx} 
+                  onClick={() => {
+                    navigate(item.path);
+                    setOpen(false);
                   }}
-                />
-              </ListItemButton>
-            ))}
+                  selected={isSelected}
+                  sx={{
+                    borderRadius: 1,
+                    mb: 0.5,
+                    py: 1,
+                    '&.Mui-selected': {
+                      backgroundColor: `${COLOR_PALETTE.primary}15`,
+                      borderLeft: `3px solid ${COLOR_PALETTE.primary}`,
+                      '&:hover': {
+                        backgroundColor: `${COLOR_PALETTE.primary}20`
+                      },
+                      '& .MuiListItemIcon-root': {
+                        color: COLOR_PALETTE.primary
+                      }
+                    }
+                  }}
+                >
+                  <ListItemIcon sx={{ 
+                    color: isSelected ? COLOR_PALETTE.primary : COLOR_PALETTE.dark + '80',
+                    minWidth: 40
+                  }}>
+                    {item.icon}
+                  </ListItemIcon>
+                  <ListItemText 
+                    primary={item.text} 
+                    primaryTypographyProps={{
+                      fontWeight: isSelected ? 'bold' : 'normal',
+                      fontSize: '0.85rem'
+                    }}
+                  />
+                </ListItemButton>
+              );
+            })}
           </List>
 
-          {/* INFORMACIÓN DEL USUARIO */}
           <Box sx={{ 
             p: 2, 
             mt: 'auto',
@@ -535,7 +502,6 @@ const Start = () => {
         </Box>
       </Drawer>
 
-      {/* CONTENIDO PRINCIPAL */}
       <Box 
         component="main" 
         sx={{ 
@@ -546,7 +512,11 @@ const Start = () => {
           minHeight: 'calc(100vh - 48px)'
         }}
       >
-        {location.pathname === "/Start" ? <Dashboard /> : <Outlet />}
+        {location.pathname === "/" || location.pathname === "/start" ? (
+          <Dashboard />
+        ) : (
+          <Outlet />
+        )}
       </Box>
     </Box>
   );
