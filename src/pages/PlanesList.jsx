@@ -24,7 +24,6 @@ const COLOR_PALETTE = {
 
 export default function PlanesList() {
   const [planes, setPlanes] = useState([]);
-  const [servicios, setServicios] = useState([]);
   const [filteredPlanes, setFilteredPlanes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -33,7 +32,6 @@ export default function PlanesList() {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(20);
   const [openDialog, setOpenDialog] = useState(false);
-  
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [editingPlan, setEditingPlan] = useState(null);
   const [planParaEliminar, setPlanParaEliminar] = useState(null);
@@ -70,12 +68,13 @@ export default function PlanesList() {
     return true;
   };
 
+  // ✅ Traer planes con servicios incluidos (como ClientesListPro)
   const fetchPlanes = async () => {
     if (!checkToken()) return;
     
     try {
       setLoading(true);
-      const res = await fetch(`${API_BASE_URL}/Planes`, {
+      const res = await fetch(`${API_BASE_URL}/Planes?includeDetails=true`, {
         headers: getAuthHeaders()
       });
       
@@ -87,7 +86,9 @@ export default function PlanesList() {
       
       if (res.ok) {
         const data = await res.json();
+        console.log('📥 Planes con servicios:', data);
         setPlanes(data);
+        setFilteredPlanes(data);
       } else {
         showSnackbar('Error al cargar planes', 'error');
       }
@@ -99,77 +100,40 @@ export default function PlanesList() {
     }
   };
 
-  const fetchServicios = async () => {
-    if (!checkToken()) return;
-    
-    try {
-      const res = await fetch(`${API_BASE_URL}/Servicios`, {
-        headers: getAuthHeaders()
-      });
-      
-      if (res.ok) {
-        const data = await res.json();
-        setServicios(data);
-      }
-    } catch (err) {
-      console.error('Error cargando servicios:', err);
-    }
-  };
-
-  // Cargar datos iniciales
+  // ✅ Cargar datos iniciales
   useEffect(() => {
-    const loadInitialData = async () => {
-      await Promise.all([
-        fetchPlanes(),
-        fetchServicios()
-      ]);
-    };
-    loadInitialData();
+    fetchPlanes();
   }, []);
 
-  // Sincronizar filteredPlanes cuando cambian planes o servicios
+  // ✅ Aplicar filtros (como ClientesListPro)
   useEffect(() => {
-    if (planes.length > 0 && servicios.length > 0) {
-      // Crear un mapa de servicios para búsqueda rápida
-      const serviciosMap = {};
-      servicios.forEach(s => {
-        serviciosMap[s.idServicio] = s.nombre;
-      });
-
-      // Enriquecer planes con nombre del servicio
-      const planesEnriquecidos = planes.map(plan => ({
-        ...plan,
-        servicioNombre: serviciosMap[plan.idServicio] || 'Desconocido'
-      }));
-      
-      // Aplicar filtros
-      let filtered = [...planesEnriquecidos];
-      
-      if (search) {
-        const lower = search.toLowerCase();
-        filtered = filtered.filter(plan =>
-          plan.nombre.toLowerCase().includes(lower) ||
-          plan.servicioNombre.toLowerCase().includes(lower)
-        );
-      }
-      
-      if (selectedServicio !== 'todos') {
-        filtered = filtered.filter(plan => 
-          plan.idServicio === parseInt(selectedServicio)
-        );
-      }
-
-      if (selectedEstado !== 'todos') {
-        filtered = filtered.filter(plan => 
-          plan.estado === selectedEstado
-        );
-      }
-      
-      setFilteredPlanes(filtered);
-    } else {
-      setFilteredPlanes(planes);
+    if (!planes.length) return;
+    
+    let filtered = [...planes];
+    
+    if (search) {
+      const lower = search.toLowerCase();
+      filtered = filtered.filter(plan =>
+        plan.nombre.toLowerCase().includes(lower) ||
+        plan.servicio?.nombre?.toLowerCase().includes(lower)
+      );
     }
-  }, [planes, servicios, search, selectedServicio, selectedEstado]);
+    
+    if (selectedServicio !== 'todos') {
+      filtered = filtered.filter(plan => 
+        plan.idServicio === parseInt(selectedServicio)
+      );
+    }
+
+    if (selectedEstado !== 'todos') {
+      filtered = filtered.filter(plan => 
+        plan.estado === selectedEstado
+      );
+    }
+    
+    setFilteredPlanes(filtered);
+    setPage(0);
+  }, [search, selectedServicio, selectedEstado, planes]);
 
   const handleOpenDialog = (plan = null) => {
     if (plan) {
@@ -232,13 +196,7 @@ export default function PlanesList() {
           editingPlan ? 'Plan actualizado' : 'Plan creado',
           'success'
         );
-        
-        // Recargar ambos datos para mantener sincronización
-        await Promise.all([
-          fetchPlanes(),
-          fetchServicios()
-        ]);
-        
+        await fetchPlanes(); // 👈 Recargar después de guardar
         setOpenDialog(false);
       } else {
         const error = await res.json();
@@ -273,13 +231,7 @@ export default function PlanesList() {
 
       if (res.ok) {
         showSnackbar(data.message || 'Plan desactivado correctamente', 'success');
-        
-        // Recargar ambos datos
-        await Promise.all([
-          fetchPlanes(),
-          fetchServicios()
-        ]);
-        
+        await fetchPlanes(); // 👈 Recargar después de eliminar
         setOpenDeleteDialog(false);
       } else {
         showSnackbar(data.message || 'Error al desactivar el plan', 'error');
@@ -316,6 +268,19 @@ export default function PlanesList() {
     page * rowsPerPage,
     page * rowsPerPage + rowsPerPage
   );
+
+  // ✅ Obtener lista única de servicios para el filtro
+  const serviciosUnicos = [];
+  const serviciosMap = new Map();
+  planes.forEach(plan => {
+    if (plan.servicio && !serviciosMap.has(plan.servicio.idServicio)) {
+      serviciosMap.set(plan.servicio.idServicio, true);
+      serviciosUnicos.push({
+        id: plan.servicio.idServicio,
+        nombre: plan.servicio.nombre
+      });
+    }
+  });
 
   return (
     <Box sx={{ p: 1, bgcolor: `${COLOR_PALETTE.dark}05`, minHeight: "100vh" }}>
@@ -410,8 +375,8 @@ export default function PlanesList() {
                 sx={{ fontSize: '0.85rem' }}
               >
                 <MenuItem value="todos" sx={{ fontSize: '0.85rem' }}>Todos los servicios</MenuItem>
-                {servicios.map(servicio => (
-                  <MenuItem key={servicio.idServicio} value={servicio.idServicio} sx={{ fontSize: '0.85rem' }}>
+                {serviciosUnicos.map(servicio => (
+                  <MenuItem key={servicio.id} value={servicio.id} sx={{ fontSize: '0.85rem' }}>
                     {servicio.nombre}
                   </MenuItem>
                 ))}
@@ -553,7 +518,7 @@ export default function PlanesList() {
                         
                         <TableCell sx={{ py: 0.5 }}>
                           <Chip 
-                            label={plan.servicioNombre || 'Desconocido'}
+                            label={plan.servicio?.nombre || 'Desconocido'}
                             size="small"
                             sx={{
                               fontSize: '0.7rem',
@@ -768,8 +733,8 @@ export default function PlanesList() {
                 label="Servicio"
                 sx={{ fontSize: '0.85rem' }}
               >
-                {servicios.map(servicio => (
-                  <MenuItem key={servicio.idServicio} value={servicio.idServicio} sx={{ fontSize: '0.85rem' }}>
+                {serviciosUnicos.map(servicio => (
+                  <MenuItem key={servicio.id} value={servicio.id} sx={{ fontSize: '0.85rem' }}>
                     {servicio.nombre}
                   </MenuItem>
                 ))}
@@ -925,7 +890,7 @@ export default function PlanesList() {
                   {planParaEliminar.nombre}
                 </Typography>
                 <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.8rem' }}>
-                  Servicio: {planParaEliminar.servicioNombre || 'Desconocido'}
+                  Servicio: {planParaEliminar.servicio?.nombre || 'Desconocido'}
                 </Typography>
                 <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.8rem' }}>
                   Duración: {planParaEliminar.duracionDias} días
