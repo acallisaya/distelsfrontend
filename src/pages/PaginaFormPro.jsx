@@ -77,7 +77,7 @@ import {
   Restore
 } from "@mui/icons-material";
 import { API_BASE_URL } from "../config";
-
+import { getImageUrl } from '../utils/imageUtils';
 
 export default function PaginaFormPro({ open, onClose, paginaData, cliente, onSave }) {
   // ESTADO INICIAL COMPLETO
@@ -1110,7 +1110,7 @@ export default function PaginaFormPro({ open, onClose, paginaData, cliente, onSa
             {pagina.logoUrl ? (
               <Box>
                 <Card sx={{ mb: 1 }}>
-                  <CardMedia component="img" height="120" image={pagina.logoUrl} alt="Logo" sx={{ objectFit: 'contain', p: 1 }} />
+                  <CardMedia component="img" height="120" image={getImageUrl(pagina.logoUrl)} alt="Logo" sx={{ objectFit: 'contain', p: 1 }} />
                 </Card>
                 <Stack direction="row" spacing={1}>
                   <Button size="small" onClick={() => logoInputRef.current?.click()} disabled={uploadingLogo}>
@@ -1143,7 +1143,7 @@ export default function PaginaFormPro({ open, onClose, paginaData, cliente, onSa
             {pagina.bannerUrl ? (
               <Box>
                 <Card sx={{ mb: 1 }}>
-                  <CardMedia component="img" height="120" image={pagina.bannerUrl} alt="Banner" sx={{ objectFit: 'cover' }} />
+                  <CardMedia component="img" height="120" image={getImageUrl(pagina.banner2Url)} alt="Banner" sx={{ objectFit: 'cover' }} />
                 </Card>
                 <Stack direction="row" spacing={1}>
                   <Button size="small" onClick={() => bannerInputRef.current?.click()} disabled={uploadingBanner}>
@@ -1176,7 +1176,7 @@ export default function PaginaFormPro({ open, onClose, paginaData, cliente, onSa
             {pagina.banner2Url ? (
               <Box>
                 <Card sx={{ mb: 1 }}>
-                  <CardMedia component="img" height="120" image={pagina.banner2Url} alt="Banner 2" sx={{ objectFit: 'cover' }} />
+                  <CardMedia component="img" height="120" image={getImageUrl(pagina.banner2Url)}  alt="Banner 2" sx={{ objectFit: 'cover' }} />
                 </Card>
                 <Stack direction="row" spacing={1}>
                   <Button size="small" onClick={() => banner2InputRef.current?.click()} disabled={uploadingBanner2}>
@@ -1209,7 +1209,7 @@ export default function PaginaFormPro({ open, onClose, paginaData, cliente, onSa
             {pagina.banner3Url ? (
               <Box>
                 <Card sx={{ mb: 1 }}>
-                  <CardMedia component="img" height="120" image={pagina.banner3Url} alt="Banner 3" sx={{ objectFit: 'cover' }} />
+                  <CardMedia component="img" height="120" image={getImageUrl(pagina.banner3Url)} alt="Banner 3" sx={{ objectFit: 'cover' }} />
                 </Card>
                 <Stack direction="row" spacing={1}>
                   <Button size="small" onClick={() => banner3InputRef.current?.click()} disabled={uploadingBanner3}>
