@@ -1321,11 +1321,10 @@ export default function PaginaPublicaPro() {
 
  
 
-  const renderFormularioActivacion = () => {
+ const renderFormularioActivacion = () => {
   if (!mostrarFormularioActivacion) return null;
 
   const { colorPrimario, cardBackground, textoColor, fondoClaro } = getColors();
-  const bordeColor = fondoClaro ? `${colorPrimario}15` : `${colorPrimario}30`;
 
   return (
     <Box id="activacion-tarjetas-section" sx={{ 
@@ -1333,42 +1332,8 @@ export default function PaginaPublicaPro() {
       display: 'flex',
       justifyContent: 'center'
     }}>
-      <Paper elevation={0} sx={{ 
-        borderRadius: 1.2, 
-        p: 1.5, 
-        border: `1px solid ${bordeColor}`,
-        width: '100%',
-        maxWidth: '320px',
-        bgcolor: cardBackground,
-        boxShadow: `0 2px 8px ${colorPrimario}10`
-      }}>
-        <Box sx={{ 
-          display: 'flex', 
-          justifyContent: 'space-between', 
-          alignItems: 'center', 
-          mb: 1.2 
-        }}>
-          <Typography variant="subtitle2" sx={{ 
-            fontWeight: 600, 
-            fontSize: '0.8rem',
-            color: colorPrimario
-          }}>
-            🎫 Activar Tarjeta
-          </Typography>
-          <IconButton 
-            size="small"
-            onClick={toggleFormularioActivacion}
-            sx={{ 
-              p: 0.2, 
-              color: textoColor,
-              opacity: 0.5,
-              '&:hover': { opacity: 1 }
-            }}
-          >
-            <Close fontSize="small" />
-          </IconButton>
-        </Box>
-        
+      {/* ELIMINA EL PAPER - RENDERIZA DIRECTAMENTE EL COMPONENTE */}
+      <Box sx={{ width: '100%', maxWidth: '320px' }}>
         <ActivacionClienteFinalPage 
           embedded={true}
           onClose={toggleFormularioActivacion}
@@ -1377,7 +1342,7 @@ export default function PaginaPublicaPro() {
           textoColor={textoColor}
           fondoClaro={fondoClaro}
         />
-      </Paper>
+      </Box>
     </Box>
   );
 };
@@ -1386,7 +1351,6 @@ export default function PaginaPublicaPro() {
   if (!mostrarFormularioVerificacion) return null;
 
   const { colorPrimario, cardBackground, textoColor, fondoClaro } = getColors();
-  const bordeColor = fondoClaro ? `${colorPrimario}15` : `${colorPrimario}30`;
 
   return (
     <Box id="verificacion-tarjetas-section" sx={{ 
@@ -1394,42 +1358,8 @@ export default function PaginaPublicaPro() {
       display: 'flex',
       justifyContent: 'center'
     }}>
-      <Paper elevation={0} sx={{ 
-        borderRadius: 1.2, 
-        p: 1.5, 
-        border: `1px solid ${bordeColor}`,
-        width: '100%',
-        maxWidth: '320px',
-        bgcolor: cardBackground,
-        boxShadow: `0 2px 8px ${colorPrimario}10`
-      }}>
-        <Box sx={{ 
-          display: 'flex', 
-          justifyContent: 'space-between', 
-          alignItems: 'center', 
-          mb: 1.2 
-        }}>
-          <Typography variant="subtitle2" sx={{ 
-            fontWeight: 600, 
-            fontSize: '0.8rem',
-            color: colorPrimario
-          }}>
-            🔍 Verificar Tarjeta
-          </Typography>
-          <IconButton 
-            size="small"
-            onClick={toggleFormularioVerificacion}
-            sx={{ 
-              p: 0.2, 
-              color: textoColor,
-              opacity: 0.5,
-              '&:hover': { opacity: 1 }
-            }}
-          >
-            <Close fontSize="small" />
-          </IconButton>
-        </Box>
-        
+      {/* ELIMINA EL PAPER - RENDERIZA DIRECTAMENTE EL COMPONENTE */}
+      <Box sx={{ width: '100%', maxWidth: '320px' }}>
         <VerificacionTarjetaEmbedded 
           onClose={toggleFormularioVerificacion}
           colorPrimario={colorPrimario}
@@ -1437,193 +1367,197 @@ export default function PaginaPublicaPro() {
           textoColor={textoColor}
           fondoClaro={fondoClaro}
         />
-      </Paper>
+      </Box>
     </Box>
   );
 };
 
-  const renderGestionTarjetas = () => {
-    if (!mostrarGestionTarjetas) return null;
+ const renderGestionTarjetas = () => {
+  if (!mostrarGestionTarjetas) return null;
 
-    const { 
-      textoColor, 
-      colorPrimario, 
-      colorSecundario,
-      cardBackground,
-      fondoClaro
-    } = getColors();
+  const { 
+    textoColor, 
+    colorPrimario, 
+    colorSecundario,
+    cardBackground,
+    fondoClaro
+  } = getColors();
 
-    const bordeColor = fondoClaro ? `${colorPrimario}12` : `${colorPrimario}25`;
-    const fondoGradiente = fondoClaro 
-      ? `linear-gradient(135deg, ${colorPrimario}02, ${colorSecundario}02)`
-      : `linear-gradient(135deg, ${colorPrimario}04, ${colorSecundario}04)`;
+  const bordeColor = fondoClaro ? `${colorPrimario}12` : `${colorPrimario}25`;
+  const fondoGradiente = fondoClaro 
+    ? `linear-gradient(135deg, ${colorPrimario}02, ${colorSecundario}02)`
+    : `linear-gradient(135deg, ${colorPrimario}04, ${colorSecundario}04)`;
 
-    return (
-      <Container maxWidth="sm" sx={{ 
-        mb: 2,
-        mt: 1,
-        animation: 'fadeIn 0.2s ease-in'
+  return (
+    <Container maxWidth="sm" sx={{ 
+      mb: 2,
+      mt: 1,
+      animation: 'fadeIn 0.2s ease-in'
+    }}>
+      <Paper elevation={0} sx={{ 
+        p: 2,
+        borderRadius: 1.2,
+        background: fondoGradiente,
+        border: `1px solid ${bordeColor}`,
+        position: 'relative',
+        overflow: 'hidden',
+        boxShadow: `0 2px 6px ${colorPrimario}06`
       }}>
-        <Paper elevation={0} sx={{ 
-          p: 2,
-          borderRadius: 1.2,
-          background: fondoGradiente,
-          border: `1px solid ${bordeColor}`,
-          position: 'relative',
-          overflow: 'hidden',
-          boxShadow: `0 2px 6px ${colorPrimario}06`
+        <Box sx={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'space-between',
+          mb: 1.5
         }}>
-          <Box sx={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'space-between',
-            mb: 1.5
-          }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
-              <Box sx={{ 
-                width: 32,
-                height: 32,
-                borderRadius: '8px',
-                background: `linear-gradient(135deg, ${colorPrimario}, ${colorSecundario})`,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: 'white'
-              }}>
-                <CreditCard sx={{ fontSize: '1rem' }} />
-              </Box>
-              <Box>
-                <Typography variant="subtitle1" sx={{ 
-                  color: colorPrimario,
-                  fontWeight: 600,
-                  lineHeight: 1.2,
-                  fontSize: '0.85rem'
-                }}>
-                  Gestión de Tarjetas
-                </Typography>
-                <Typography variant="caption" sx={{ 
-                  color: textoColor,
-                  opacity: 0.4,
-                  fontSize: '0.65rem'
-                }}>
-                  Activa o verifica tarjetas
-                </Typography>
-              </Box>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
+            <Box sx={{ 
+              width: 32,
+              height: 32,
+              borderRadius: '8px',
+              background: `linear-gradient(135deg, ${colorPrimario}, ${colorSecundario})`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'white'
+            }}>
+              <CreditCard sx={{ fontSize: '1rem' }} />
             </Box>
-            <IconButton 
-              onClick={toggleGestionTarjetas}
-              size="small"
-              sx={{ 
+            <Box>
+              <Typography variant="subtitle1" sx={{ 
                 color: colorPrimario,
-                opacity: 0.6,
-                '&:hover': { 
-                  opacity: 1,
-                  bgcolor: `${colorPrimario}08` 
-                },
-                width: 26,
-                height: 26
-              }}
-            >
-              <ExpandLessIcon fontSize="small" />
-            </IconButton>
+                fontWeight: 600,
+                lineHeight: 1.2,
+                fontSize: '0.85rem'
+              }}>
+                Gestión de Tarjetas
+              </Typography>
+              <Typography variant="caption" sx={{ 
+                color: textoColor,
+                opacity: 0.4,
+                fontSize: '0.65rem'
+              }}>
+                Activa o verifica tarjetas
+              </Typography>
+            </Box>
+          </Box>
+          <IconButton 
+            onClick={toggleGestionTarjetas}
+            size="small"
+            sx={{ 
+              color: colorPrimario,
+              opacity: 0.6,
+              '&:hover': { 
+                opacity: 1,
+                bgcolor: `${colorPrimario}08` 
+              },
+              width: 26,
+              height: 26
+            }}
+          >
+            <ExpandLessIcon fontSize="small" />
+          </IconButton>
+        </Box>
+        
+        {/* BOTONES DE TARJETAS - AHORA FUERA DEL PAPER DE FORMULARIOS */}
+        <Box sx={{ mb: 1.2 }}>
+          <TarjetasButtons 
+            clienteId={clienteId} 
+            onToggleActivacion={toggleFormularioActivacion}
+            onToggleVerificacion={toggleFormularioVerificacion}
+            mostrarFormulario={mostrarFormularioActivacion}
+            mostrarVerificacion={mostrarFormularioVerificacion}
+            colorPrimario={colorPrimario}
+            colorSecundario={colorSecundario}
+            fondoClaro={fondoClaro}
+          />
+        </Box>
+        
+        {/* LOS FORMULARIOS SE RENDERIZAN FUERA DE ESTE PAPER */}
+        {/* Por eso los quitamos de aquí */}
+
+        <Box sx={{ 
+          display: 'flex', 
+          justifyContent: 'space-between',
+          mt: 1.2,
+          pt: 1.2,
+          borderTop: `1px solid ${bordeColor}`
+        }}>
+          <Box sx={{ textAlign: 'center', flex: 1 }}>
+            <Box sx={{ 
+              width: 22,
+              height: 22,
+              borderRadius: '5px',
+              background: `${colorPrimario}12`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 3px',
+              color: colorPrimario
+            }}>
+              <VerifiedUser sx={{ fontSize: '0.8rem' }} />
+            </Box>
+            <Typography variant="caption" sx={{ 
+              color: textoColor,
+              opacity: 0.5,
+              fontSize: '0.6rem',
+              fontWeight: 500
+            }}>
+              Seguro
+            </Typography>
           </Box>
           
-          <Box sx={{ mb: 1.2 }}>
-            <TarjetasButtons 
-              clienteId={clienteId} 
-              onToggleActivacion={toggleFormularioActivacion}
-              onToggleVerificacion={toggleFormularioVerificacion}
-              mostrarFormulario={mostrarFormularioActivacion}
-              mostrarVerificacion={mostrarFormularioVerificacion}
-              colorPrimario={colorPrimario}
-              colorSecundario={colorSecundario}
-              fondoClaro={fondoClaro}
-            />
+          <Box sx={{ textAlign: 'center', flex: 1 }}>
+            <Box sx={{ 
+              width: 22,
+              height: 22,
+              borderRadius: '5px',
+              background: `${colorSecundario}12`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 3px',
+              color: colorSecundario
+            }}>
+              <CreditCard sx={{ fontSize: '0.8rem' }} />
+            </Box>
+            <Typography variant="caption" sx={{ 
+              color: textoColor,
+              opacity: 0.5,
+              fontSize: '0.6rem',
+              fontWeight: 500
+            }}>
+              Rápido
+            </Typography>
           </Box>
           
-          <Box sx={{ 
-            display: 'flex', 
-            justifyContent: 'space-between',
-            mt: 1.2,
-            pt: 1.2,
-            borderTop: `1px solid ${bordeColor}`
-          }}>
-            <Box sx={{ textAlign: 'center', flex: 1 }}>
-              <Box sx={{ 
-                width: 22,
-                height: 22,
-                borderRadius: '5px',
-                background: `${colorPrimario}12`,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                margin: '0 auto 3px',
-                color: colorPrimario
-              }}>
-                <VerifiedUser sx={{ fontSize: '0.8rem' }} />
-              </Box>
-              <Typography variant="caption" sx={{ 
-                color: textoColor,
-                opacity: 0.5,
-                fontSize: '0.6rem',
-                fontWeight: 500
-              }}>
-                Seguro
-              </Typography>
+          <Box sx={{ textAlign: 'center', flex: 1 }}>
+            <Box sx={{ 
+              width: 22,
+              height: 22,
+              borderRadius: '5px',
+              background: `${colorPrimario}12`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 3px',
+              color: colorPrimario
+            }}>
+              <Security sx={{ fontSize: '0.8rem' }} />
             </Box>
-            
-            <Box sx={{ textAlign: 'center', flex: 1 }}>
-              <Box sx={{ 
-                width: 22,
-                height: 22,
-                borderRadius: '5px',
-                background: `${colorSecundario}12`,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                margin: '0 auto 3px',
-                color: colorSecundario
-              }}>
-                <CreditCard sx={{ fontSize: '0.8rem' }} />
-              </Box>
-              <Typography variant="caption" sx={{ 
-                color: textoColor,
-                opacity: 0.5,
-                fontSize: '0.6rem',
-                fontWeight: 500
-              }}>
-                Rápido
-              </Typography>
-            </Box>
-            
-            <Box sx={{ textAlign: 'center', flex: 1 }}>
-              <Box sx={{ 
-                width: 22,
-                height: 22,
-                borderRadius: '5px',
-                background: `${colorPrimario}12`,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                margin: '0 auto 3px',
-                color: colorPrimario
-              }}>
-                <Security sx={{ fontSize: '0.8rem' }} />
-              </Box>
-              <Typography variant="caption" sx={{ 
-                color: textoColor,
-                opacity: 0.5,
-                fontSize: '0.6rem',
-                fontWeight: 500
-              }}>
-                Protegido
-              </Typography>
-            </Box>
+            <Typography variant="caption" sx={{ 
+              color: textoColor,
+              opacity: 0.5,
+              fontSize: '0.6rem',
+              fontWeight: 500
+            }}>
+              Protegido
+            </Typography>
           </Box>
-        </Paper>
-      </Container>
-    );
-  };
+        </Box>
+      </Paper>
+    </Container>
+  );
+};
 
   const renderContacto = () => {
     if (!pagina?.mostrarContacto) return null;
