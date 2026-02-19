@@ -1,4 +1,6 @@
+// src/pages/VerificacionTarjetaEmbedded.jsx
 import React, { useState } from 'react';
+import { API_BASE_URL } from '../config';
 
 const VerificacionTarjetaEmbedded = () => {
   const [codigo, setCodigo] = useState('909868548921455');
@@ -6,15 +8,29 @@ const VerificacionTarjetaEmbedded = () => {
   const [datos, setDatos] = useState(null);
   const [error, setError] = useState('');
 
+  // ========== FUNCIÓN PARA OBTENER HEADERS CON NGROK ==========
+  const getHeaders = () => {
+    return {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'ngrok-skip-browser-warning': 'true' // 👈 HEADER CLAVE PARA NGROK
+    };
+  };
+
   const verificar = async () => {
     setLoading(true);
     setError('');
     
     try {
-      const res = await fetch(`http://localhost:5127/api/Tarjetas/verificar/${codigo}`);
+      // ✅ USAR API_BASE_URL EN LUGAR DE LOCALHOST
+      const res = await fetch(`${API_BASE_URL}/Tarjetas/verificar/${codigo}`, {
+        headers: getHeaders() // 👈 AGREGAR HEADERS
+      });
       
       if (!res.ok) {
-        throw new Error('Error del servidor');
+        const text = await res.text();
+        console.error('Error respuesta:', text);
+        throw new Error(`Error ${res.status}: No se pudo verificar la tarjeta`);
       }
       
       const resultado = await res.json();
@@ -22,10 +38,11 @@ const VerificacionTarjetaEmbedded = () => {
       if (resultado.success) {
         setDatos(resultado.data);
       } else {
-        setError(resultado.message || 'Error');
+        setError(resultado.message || 'Error al verificar la tarjeta');
       }
     } catch (err) {
       setError(err.message);
+      console.error('Error en verificación:', err);
     } finally {
       setLoading(false);
     }
@@ -55,7 +72,6 @@ const VerificacionTarjetaEmbedded = () => {
       fontFamily: 'Arial, sans-serif',
       fontSize: '13px'
     }}>
-      
       
       {/* INPUT Y BOTÓN */}
       <div style={{ 
@@ -153,7 +169,7 @@ const VerificacionTarjetaEmbedded = () => {
             </div>
           </div>
           
-          {/* PLAN Y SERVICIO - SIN SUBTÍTULO */}
+          {/* PLAN Y SERVICIO */}
           {datos.plan && (
             <div style={{
               backgroundColor: '#e3f2fd',
@@ -192,7 +208,7 @@ const VerificacionTarjetaEmbedded = () => {
             </div>
           )}
           
-          {/* FECHAS - SIN SUBTÍTULO */}
+          {/* FECHAS */}
           <div style={{
             backgroundColor: '#fff8e1',
             padding: '10px',
@@ -231,7 +247,7 @@ const VerificacionTarjetaEmbedded = () => {
             </div>
           </div>
           
-          {/* CLIENTE FINAL - SIN SUBTÍTULO */}
+          {/* CLIENTE FINAL */}
           {datos.clienteFinal && (
             <div style={{
               backgroundColor: '#e8f5e9',
