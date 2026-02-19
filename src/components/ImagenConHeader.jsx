@@ -12,35 +12,60 @@ const ImagenConHeader = ({ src, alt, ...props }) => {
       return;
     }
 
-    const fetchImage = async () => {
+    const loadImage = async () => {
       try {
         setLoading(true);
-        // Agregar el header necesario para ngrok
-        const response = await fetch(src, {
-          headers: {
-            'ngrok-skip-browser-warning': 'true'
+        console.log('🖼️ Intentando cargar:', src);
+
+        // PRIMER INTENTO: Con fetch y header
+        try {
+          const response = await fetch(src, {
+            headers: {
+              'ngrok-skip-browser-warning': 'true'
+            }
+          });
+
+          if (response.ok) {
+            const blob = await response.blob();
+            const objectUrl = URL.createObjectURL(blob);
+            setImageSrc(objectUrl);
+            setError(false);
+            console.log('✅ Cargada con fetch');
+            return;
           }
-        });
+        } catch (fetchError) {
+          console.log('⚠️ Fetch falló, intentando directamente');
+        }
+
+        // SEGUNDO INTENTO: Usar un timestamp para evitar caché
+        // Esto fuerza al navegador a hacer una nueva petición
+        const timestamp = new Date().getTime();
+        const fallbackUrl = src.includes('?') 
+          ? `${src}&t=${timestamp}` 
+          : `${src}?t=${timestamp}`;
         
-        if (!response.ok) throw new Error('Error cargando imagen');
-        
-        const blob = await response.blob();
-        const objectUrl = URL.createObjectURL(blob);
-        setImageSrc(objectUrl);
-        setError(false);
+        // Probar con un Image object
+        const img = new Image();
+        img.onload = () => {
+          setImageSrc(fallbackUrl);
+          setError(false);
+          setLoading(false);
+          console.log('✅ Cargada con timestamp');
+        };
+        img.onerror = () => {
+          throw new Error('No se pudo cargar la imagen');
+        };
+        img.src = fallbackUrl;
+
       } catch (err) {
-        console.error('Error cargando imagen:', err);
+        console.error('❌ Error definitivo:', err);
         setError(true);
-        // Fallback a la URL original si falla
-        setImageSrc(src);
-      } finally {
         setLoading(false);
       }
     };
 
-    fetchImage();
+    loadImage();
 
-    // Limpiar memoria
     return () => {
       if (imageSrc && imageSrc.startsWith('blob:')) {
         URL.revokeObjectURL(imageSrc);
@@ -56,9 +81,10 @@ const ImagenConHeader = ({ src, alt, ...props }) => {
         backgroundColor: '#f0f0f0',
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'center'
+        justifyContent: 'center',
+        borderRadius: '4px'
       }}>
-        <span style={{ fontSize: '12px', color: '#999' }}>Cargando...</span>
+        <span style={{ fontSize: '12px', color: '#666' }}>🖼️ Cargando...</span>
       </div>
     );
   }
@@ -73,9 +99,12 @@ const ImagenConHeader = ({ src, alt, ...props }) => {
         alignItems: 'center',
         justifyContent: 'center',
         color: '#c62828',
-        fontSize: '12px'
+        fontSize: '12px',
+        borderRadius: '4px',
+        padding: '10px',
+        textAlign: 'center'
       }}>
-        ⚠️ Error al cargar
+        ⚠️ No se pudo cargar la imagen
       </div>
     );
   }
