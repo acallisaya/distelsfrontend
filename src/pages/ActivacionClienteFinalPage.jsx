@@ -43,6 +43,15 @@ export default function ActivacionClienteFinalPage({
     severity: "success"
   });
 
+  // ========== FUNCIÓN PARA OBTENER HEADERS CON NGROK ==========
+  const getHeaders = () => {
+    return {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'ngrok-skip-browser-warning': 'true' // 👈 HEADER CLAVE PARA NGROK
+    };
+  };
+
   // Determinar colores según props
   const getContrastColor = (color) => {
     if (!color) return '#333333';
@@ -69,10 +78,20 @@ export default function ActivacionClienteFinalPage({
     setError("");
 
     try {
-      const res = await fetch(`${API_BASE_URL}/Tarjetas/codigo/${codigoTarjeta}`);
+      // ✅ AGREGAR HEADERS A LA PETICIÓN
+      const res = await fetch(`${API_BASE_URL}/Tarjetas/codigo/${codigoTarjeta}`, {
+        headers: getHeaders()
+      });
+      
+      if (!res.ok) {
+        const text = await res.text();
+        console.error('Error respuesta:', text);
+        throw new Error(`Error ${res.status}: No se pudo verificar la tarjeta`);
+      }
+      
       const data = await res.json();
       
-      if (!res.ok || !data.success) {
+      if (!data.success) {
         throw new Error(data.message || "Código inválido o ya utilizado");
       }
 
@@ -170,18 +189,22 @@ export default function ActivacionClienteFinalPage({
 
       console.log("Enviando payload:", payload);
 
+      // ✅ AGREGAR HEADERS A LA PETICIÓN
       const res = await fetch(`${API_BASE_URL}/Tarjetas/activar-cliente-final`, {
         method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
+        headers: getHeaders(), // 👈 AHORA USA LA FUNCIÓN CON NGROK
         body: JSON.stringify(payload)
       });
 
+      if (!res.ok) {
+        const text = await res.text();
+        console.error('Error respuesta:', text);
+        throw new Error(`Error ${res.status}: No se pudo completar la activación`);
+      }
+
       const responseData = await res.json();
       
-      if (!res.ok || !responseData.success) {
+      if (!responseData.success) {
         throw new Error(responseData.message || "Error en la activación");
       }
 
