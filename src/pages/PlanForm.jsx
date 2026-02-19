@@ -12,6 +12,7 @@ import {
   Box,
   Alert,
   CircularProgress,
+  Paper,
   FormControl,
   InputLabel,
   Select,
@@ -39,7 +40,7 @@ export default function PlanForm({ open, onClose, planData, servicios, onSave })
   const [error, setError] = useState("");
   const [isEditing, setIsEditing] = useState(false);
 
-  // Cargar datos cuando se abre el diálogo (IGUAL QUE EN CLIENTEFORM)
+  // Cargar datos cuando se abre el diálogo
   useEffect(() => {
     if (open) {
       if (planData) {
@@ -124,7 +125,7 @@ export default function PlanForm({ open, onClose, planData, servicios, onSave })
         const errorData = await res.json();
         setError(errorData.message || 'Error al guardar el plan');
       }
-    } catch  {
+    } catch (err) {
       setError('Error de conexión al servidor');
     } finally {
       setLoading(false);
@@ -146,145 +147,167 @@ export default function PlanForm({ open, onClose, planData, servicios, onSave })
         }
       }}
     >
-      {/* Header con gradiente - IGUAL QUE EN PLANESLIST */}
-      <DialogTitle
+      {/* Header con gradiente - IGUAL QUE EN CLIENTEFORM */}
+      <Paper
         sx={{
           background: `linear-gradient(90deg, ${COLOR_PALETTE.primary}, ${COLOR_PALETTE.secondary})`,
           color: 'white',
-          fontWeight: 'bold',
-          py: 1.5,
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center'
+          p: 2,
+          borderRadius: 0
         }}
       >
-        <Typography variant="h6" sx={{ fontWeight: 'bold', fontSize: '1.1rem' }}>
-          {isEditing ? '✏️ Editar Plan' : '➕ Nuevo Plan'}
-        </Typography>
-        <IconButton onClick={onClose} sx={{ color: 'white' }}>
-          <Close />
-        </IconButton>
-      </DialogTitle>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Box>
+            <Typography variant="h6" sx={{ fontWeight: 'bold', fontSize: '1.1rem' }}>
+              {isEditing ? '✏️ Editar Plan' : '➕ Nuevo Plan'}
+            </Typography>
+            <Typography variant="body2" sx={{ opacity: 0.9, fontSize: '0.8rem' }}>
+              {isEditing ? 'Actualiza los datos del plan' : 'Crea un nuevo plan para el servicio'}
+            </Typography>
+          </Box>
+          <IconButton 
+            onClick={onClose} 
+            sx={{ 
+              color: 'white',
+              backgroundColor: 'rgba(255,255,255,0.1)',
+              '&:hover': { backgroundColor: 'rgba(255,255,255,0.2)' }
+            }}
+          >
+            <Close />
+          </IconButton>
+        </Box>
+      </Paper>
 
-      <DialogContent sx={{ p: 2 }}>
+      <DialogContent sx={{ p: 3 }}>
         {error && (
           <Alert severity="error" sx={{ mb: 2, borderRadius: 1, fontSize: '0.85rem' }}>
             {error}
           </Alert>
         )}
 
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, mt: 1 }}>
-          {/* Selector de Servicio */}
-          <FormControl fullWidth size="small" required>
-            <InputLabel sx={{ fontSize: '0.85rem' }}>Servicio</InputLabel>
-            <Select
-              name="idServicio"
-              value={formData.idServicio}
-              onChange={handleChange}
-              label="Servicio"
-              sx={{ fontSize: '0.85rem' }}
-            >
-              {servicios.map(servicio => (
-                <MenuItem key={servicio.idServicio} value={servicio.idServicio} sx={{ fontSize: '0.85rem' }}>
-                  {servicio.nombre}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+        <Grid container spacing={2}>
+          {/* Selector de Servicio - CON ESTILO MEJORADO */}
+          <Grid item xs={12}>
+            <FormControl fullWidth size="small" required>
+              <InputLabel sx={{ fontSize: '0.85rem' }}>Servicio</InputLabel>
+              <Select
+                name="idServicio"
+                value={formData.idServicio}
+                onChange={handleChange}
+                label="Servicio"
+                sx={{ fontSize: '0.85rem' }}
+              >
+                {servicios.map(servicio => (
+                  <MenuItem key={servicio.id} value={servicio.id} sx={{ fontSize: '0.85rem' }}>
+                    {servicio.nombre}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
 
           {/* Nombre del Plan */}
-          <TextField
-            fullWidth
-            label="Nombre del Plan *"
-            name="nombre"
-            size="small"
-            value={formData.nombre}
-            onChange={handleChange}
-            placeholder="Ej: Plan 30 días, 1 Pantalla, etc."
-            InputProps={{ style: { fontSize: '0.85rem' } }}
-            InputLabelProps={{ style: { fontSize: '0.85rem' } }}
-          />
-
-          {/* Grid para campos numéricos */}
-          <Grid container spacing={1.5}>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Duración (días) *"
-                name="duracionDias"
-                type="number"
-                size="small"
-                value={formData.duracionDias}
-                onChange={handleChange}
-                InputProps={{ 
-                  inputProps: { min: 1, max: 365 },
-                  style: { fontSize: '0.85rem' }
-                }}
-                InputLabelProps={{ style: { fontSize: '0.85rem' } }}
-              />
-            </Grid>
-
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Precio de Compra *"
-                name="precioCompra"
-                type="number"
-                size="small"
-                value={formData.precioCompra}
-                onChange={handleChange}
-                InputProps={{ 
-                  inputProps: { min: 0, step: 0.01 },
-                  style: { fontSize: '0.85rem' }
-                }}
-                InputLabelProps={{ style: { fontSize: '0.85rem' } }}
-              />
-            </Grid>
-
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Precio de Venta *"
-                name="precioVenta"
-                type="number"
-                size="small"
-                value={formData.precioVenta}
-                onChange={handleChange}
-                InputProps={{ 
-                  inputProps: { min: 0, step: 0.01 },
-                  style: { fontSize: '0.85rem' }
-                }}
-                InputLabelProps={{ style: { fontSize: '0.85rem' } }}
-              />
-            </Grid>
-
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Ganancia"
-                size="small"
-                value={ganancia}
-                InputProps={{
-                  readOnly: true,
-                  sx: { 
-                    color: COLOR_PALETTE.success, 
-                    fontWeight: 'bold',
-                    fontSize: '0.85rem'
-                  }
-                }}
-                InputLabelProps={{ style: { fontSize: '0.85rem' } }}
-              />
-            </Grid>
+          <Grid item xs={12}>
+            <TextField
+              fullWidth
+              label="Nombre del Plan *"
+              name="nombre"
+              value={formData.nombre}
+              onChange={handleChange}
+              size="small"
+              placeholder="Ej: Plan 30 días, 1 Pantalla, etc."
+              InputProps={{ style: { fontSize: '0.85rem' } }}
+              InputLabelProps={{ style: { fontSize: '0.85rem' } }}
+            />
           </Grid>
-        </Box>
+
+          {/* Duración */}
+          <Grid item xs={12} md={6}>
+            <TextField
+              fullWidth
+              label="Duración (días) *"
+              name="duracionDias"
+              type="number"
+              size="small"
+              value={formData.duracionDias}
+              onChange={handleChange}
+              InputProps={{ 
+                inputProps: { min: 1, max: 365 },
+                style: { fontSize: '0.85rem' }
+              }}
+              InputLabelProps={{ style: { fontSize: '0.85rem' } }}
+            />
+          </Grid>
+
+          {/* Precio Compra */}
+          <Grid item xs={12} md={6}>
+            <TextField
+              fullWidth
+              label="Precio de Compra *"
+              name="precioCompra"
+              type="number"
+              size="small"
+              value={formData.precioCompra}
+              onChange={handleChange}
+              InputProps={{ 
+                inputProps: { min: 0, step: 0.01 },
+                style: { fontSize: '0.85rem' }
+              }}
+              InputLabelProps={{ style: { fontSize: '0.85rem' } }}
+            />
+          </Grid>
+
+          {/* Precio Venta */}
+          <Grid item xs={12} md={6}>
+            <TextField
+              fullWidth
+              label="Precio de Venta *"
+              name="precioVenta"
+              type="number"
+              size="small"
+              value={formData.precioVenta}
+              onChange={handleChange}
+              InputProps={{ 
+                inputProps: { min: 0, step: 0.01 },
+                style: { fontSize: '0.85rem' }
+              }}
+              InputLabelProps={{ style: { fontSize: '0.85rem' } }}
+            />
+          </Grid>
+
+          {/* Ganancia (solo lectura) */}
+          <Grid item xs={12} md={6}>
+            <TextField
+              fullWidth
+              label="Ganancia"
+              size="small"
+              value={ganancia}
+              InputProps={{
+                readOnly: true,
+                sx: { 
+                  color: COLOR_PALETTE.success, 
+                  fontWeight: 'bold',
+                  fontSize: '0.85rem'
+                }
+              }}
+              InputLabelProps={{ style: { fontSize: '0.85rem' } }}
+            />
+          </Grid>
+        </Grid>
       </DialogContent>
 
-      <DialogActions sx={{ p: 1.5 }}>
+      <DialogActions sx={{ p: 2, borderTop: `1px solid ${COLOR_PALETTE.dark}10` }}>
         <Button 
           onClick={onClose} 
           disabled={loading}
-          size="small"
-          sx={{ fontSize: '0.8rem' }}
+          sx={{
+            borderRadius: 1,
+            px: 3,
+            fontSize: '0.85rem',
+            color: COLOR_PALETTE.dark,
+            border: `1px solid ${COLOR_PALETTE.dark}20`,
+            '&:hover': { backgroundColor: `${COLOR_PALETTE.dark}05` }
+          }}
         >
           Cancelar
         </Button>
@@ -292,15 +315,16 @@ export default function PlanForm({ open, onClose, planData, servicios, onSave })
           variant="contained"
           onClick={handleSubmit}
           disabled={loading}
-          size="small"
-          startIcon={loading ? <CircularProgress size={16} /> : <Save />}
-          sx={{
+          startIcon={loading ? <CircularProgress size={16} sx={{ color: 'white' }} /> : <Save />}
+          sx={{ 
             background: `linear-gradient(90deg, ${COLOR_PALETTE.primary}, ${COLOR_PALETTE.secondary})`,
-            fontSize: '0.8rem',
-            px: 2
+            borderRadius: 1,
+            px: 3,
+            fontSize: '0.85rem',
+            '&:hover': { boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)' }
           }}
         >
-          {loading ? 'Guardando...' : (isEditing ? 'Actualizar' : 'Crear')}
+          {loading ? 'Guardando...' : (isEditing ? 'Actualizar Plan' : 'Crear Plan')}
         </Button>
       </DialogActions>
     </Dialog>
