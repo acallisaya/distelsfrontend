@@ -1,4 +1,3 @@
-// src/pages/ActivacionClienteFinalPage.jsx
 import React, { useState } from "react";
 import {
   Box,
@@ -7,12 +6,14 @@ import {
   TextField,
   Alert,
   CircularProgress,
-  Snackbar
+  Snackbar,
+  IconButton
 } from "@mui/material";
 import {
   Send,
   CheckCircle,
-  WhatsApp
+  WhatsApp,
+  Close
 } from "@mui/icons-material";
 import MuiAlert from '@mui/material/Alert';
 import { API_BASE_URL } from "../config";
@@ -48,7 +49,7 @@ export default function ActivacionClienteFinalPage({
     return {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
-      'ngrok-skip-browser-warning': 'true' // 👈 HEADER CLAVE PARA NGROK
+      'ngrok-skip-browser-warning': 'true'
     };
   };
 
@@ -79,7 +80,6 @@ export default function ActivacionClienteFinalPage({
     setError("");
 
     try {
-      // ✅ AGREGAR HEADERS A LA PETICIÓN
       const res = await fetch(`${API_BASE_URL}/Tarjetas/codigo/${codigoTarjeta}`, {
         headers: getHeaders()
       });
@@ -107,7 +107,6 @@ export default function ActivacionClienteFinalPage({
   };
 
   const enviarWhatsApp = (credenciales) => {
-    // Formatear número para WhatsApp
     let numeroLimpio = celular.replace(/\D/g, '');
     
     if (numeroLimpio.startsWith('0')) {
@@ -118,7 +117,6 @@ export default function ActivacionClienteFinalPage({
       ? numeroLimpio 
       : `591${numeroLimpio}`;
     
-    // 📱 MENSAJE COMPLETO CON CREDENCIALES
     const mensaje = encodeURIComponent(
       `🎬 *¡ACTIVACIÓN EXITOSA!* 🎉\n\n` +
       `Hola *${nombre || 'cliente'}*, tu tarjeta *${codigoTarjeta}* ha sido activada correctamente.\n\n` +
@@ -157,7 +155,6 @@ export default function ActivacionClienteFinalPage({
       return;
     }
     
-    // Validación para Bolivia (8 dígitos)
     let numeroLimpio = celular.replace(/\D/g, '');
     if (numeroLimpio.startsWith('0')) {
       numeroLimpio = numeroLimpio.substring(1);
@@ -175,7 +172,6 @@ export default function ActivacionClienteFinalPage({
     setError("");
 
     try {
-      // Enviar número COMPLETO con código de país
       const numeroCompleto = `591${numeroLimpio}`;
 
       const payload = {
@@ -190,10 +186,9 @@ export default function ActivacionClienteFinalPage({
 
       console.log("Enviando payload:", payload);
 
-      // ✅ AGREGAR HEADERS A LA PETICIÓN
       const res = await fetch(`${API_BASE_URL}/Tarjetas/activar-cliente-final`, {
         method: 'POST',
-        headers: getHeaders(), // 👈 AHORA USA LA FUNCIÓN CON NGROK
+        headers: getHeaders(),
         body: JSON.stringify(payload)
       });
 
@@ -209,7 +204,6 @@ export default function ActivacionClienteFinalPage({
         throw new Error(responseData.message || "Error en la activación");
       }
 
-      // ✅ ENVIAR WHATSAPP AUTOMÁTICAMENTE CON LAS CREDENCIALES
       const credenciales = {
         usuario: responseData.usuario || codigoTarjeta,
         contrasena: responseData.contrasena || "****",
@@ -219,7 +213,6 @@ export default function ActivacionClienteFinalPage({
         fechaVencimiento: responseData.fechaVencimiento || null
       };
 
-      // Enviar WhatsApp automáticamente
       enviarWhatsApp(credenciales);
 
       setSuccess(true);
@@ -267,6 +260,42 @@ export default function ActivacionClienteFinalPage({
         bgcolor: backgroundColor,
         color: textColor
       }}>
+        {/* TÍTULO VISIBLE - SOLO CUANDO NO ESTÁ EMBEBIDO */}
+        {!embedded && (
+          <Box sx={{ 
+            display: 'flex', 
+            justifyContent: 'space-between', 
+            alignItems: 'center', 
+            mb: 1.5,
+            px: 0.5
+          }}>
+            <Typography 
+              variant="subtitle1" 
+              sx={{ 
+                fontWeight: 700, 
+                fontSize: '0.9rem',
+                color: primaryColor,
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px'
+              }}
+            >
+              🎫 ACTIVAR TARJETA
+            </Typography>
+            <IconButton 
+              size="small"
+              onClick={onClose}
+              sx={{ 
+                p: 0.5, 
+                color: textColor,
+                opacity: 0.7,
+                '&:hover': { opacity: 1 }
+              }}
+            >
+              <Close fontSize="small" />
+            </IconButton>
+          </Box>
+        )}
+
         {!success ? (
           <>
             {error && (

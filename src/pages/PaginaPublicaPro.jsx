@@ -434,9 +434,7 @@ const StreamingFooterButtons = ({
             <Typography variant="body1" sx={{ fontWeight: 600, fontSize: '0.95rem' }}>
               Activar Tarjeta
             </Typography>
-            <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.7rem' }}>
-              Para {selectedService?.nombre}
-            </Typography>
+            
           </Box>
         </MenuItem>
         <MenuItem 
@@ -456,9 +454,7 @@ const StreamingFooterButtons = ({
             <Typography variant="body1" sx={{ fontWeight: 600, fontSize: '0.95rem' }}>
               Verificar Tarjeta
             </Typography>
-            <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.7rem' }}>
-              Para {selectedService?.nombre}
-            </Typography>
+           
           </Box>
         </MenuItem>
       </Menu>
@@ -1332,7 +1328,6 @@ export default function PaginaPublicaPro() {
       display: 'flex',
       justifyContent: 'center'
     }}>
-      {/* ELIMINA EL PAPER - RENDERIZA DIRECTAMENTE EL COMPONENTE */}
       <Box sx={{ width: '100%', maxWidth: '320px' }}>
         <ActivacionClienteFinalPage 
           embedded={true}
@@ -1347,7 +1342,7 @@ export default function PaginaPublicaPro() {
   );
 };
 
- const renderFormularioVerificacion = () => {
+const renderFormularioVerificacion = () => {
   if (!mostrarFormularioVerificacion) return null;
 
   const { colorPrimario, cardBackground, textoColor, fondoClaro } = getColors();
@@ -1358,9 +1353,9 @@ export default function PaginaPublicaPro() {
       display: 'flex',
       justifyContent: 'center'
     }}>
-      {/* ELIMINA EL PAPER - RENDERIZA DIRECTAMENTE EL COMPONENTE */}
       <Box sx={{ width: '100%', maxWidth: '320px' }}>
         <VerificacionTarjetaEmbedded 
+          embedded={true}
           onClose={toggleFormularioVerificacion}
           colorPrimario={colorPrimario}
           colorFondo={cardBackground}

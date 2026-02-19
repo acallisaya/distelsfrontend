@@ -1,9 +1,9 @@
-// src/pages/VerificacionTarjetaEmbedded.jsx
 import React, { useState } from 'react';
 import { API_BASE_URL } from '../config';
 
 const VerificacionTarjetaEmbedded = ({ 
   onClose, 
+  embedded = false,
   colorPrimario = '#2196F3',
   colorFondo,
   textoColor,
@@ -87,6 +87,46 @@ const VerificacionTarjetaEmbedded = ({
       borderRadius: '4px'
     }}>
       
+      {/* TÍTULO VISIBLE - SOLO CUANDO ESTÁ EMBEBIDO */}
+      {embedded && (
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center', 
+          marginBottom: '15px',
+          padding: '0 5px'
+        }}>
+          <span style={{ 
+            fontWeight: 700, 
+            fontSize: '0.9rem',
+            color: colorPrimario,
+            textTransform: 'uppercase',
+            letterSpacing: '0.5px'
+          }}>
+            🔍 VERIFICAR TARJETA
+          </span>
+          {onClose && (
+            <button
+              onClick={onClose}
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                color: textColor,
+                opacity: 0.7,
+                fontSize: '18px',
+                padding: '4px 8px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
+              ✕
+            </button>
+          )}
+        </div>
+      )}
+
       {/* INPUT Y BOTÓN */}
       <div style={{ 
         display: 'flex', 
