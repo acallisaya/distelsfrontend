@@ -7,8 +7,8 @@ import {
   Alert, Snackbar
 } from '@mui/material';
 import {
-  Add, Search, Edit, Delete, Visibility, Refresh,
-  CheckCircle, Error, CardGiftcard, People
+  Add, Search, Edit, Delete, Refresh,
+  CheckCircle, Error, CardGiftcard
 } from '@mui/icons-material';
 import { API_BASE_URL } from '../config';
 
@@ -36,52 +36,64 @@ export default function ServiciosList() {
   const [formData, setFormData] = useState({
     nombre: '',
     codigo: '',
-    maxPerfiles: 0  // CAMBIO: Valor inicial 0
+    maxPerfiles: 0
   });
   const [formErrors, setFormErrors] = useState({});
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
- const fetchServicios = async () => {
-  try {
-    setLoading(true);
-    
-    // Obtener token del localStorage
+  // ✅ Función para obtener headers con token (IGUAL QUE EN PLANESLIST)
+  const getAuthHeaders = () => {
     const token = localStorage.getItem('token');
-    
+    return {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'ngrok-skip-browser-warning': 'true'
+    };
+  };
+
+  // ✅ Verificar token antes de peticiones (IGUAL QUE EN PLANESLIST)
+  const checkToken = () => {
+    const token = localStorage.getItem('token');
     if (!token) {
-      showSnackbar('No hay sesión activa', 'error');
-      return;
-    }
-
-    const res = await fetch(`${API_BASE_URL}/Servicios`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'ngrok-skip-browser-warning': 'true'
-      }
-    });
-
-    if (res.ok) {
-      const data = await res.json();
-      setServicios(data);
-      setFilteredServicios(data);
-    } else if (res.status === 401) {
-      showSnackbar('Sesión expirada, inicia sesión nuevamente', 'error');
-      // Redirigir al login
+      showSnackbar('Sesión expirada', 'error');
       window.location.href = '/';
-    } else {
-      const error = await res.text();
-      showSnackbar(`Error ${res.status}: ${error}`, 'error');
+      return false;
     }
-  } catch (error) {
-    console.error('Error en fetchServicios:', error);
-    showSnackbar('Error al cargar servicios', 'error');
-  } finally {
-    setLoading(false);
-  }
-};
+    return true;
+  };
+
+  // ✅ fetchServicios corregido
+  const fetchServicios = async () => {
+    if (!checkToken()) return;
+    
+    try {
+      setLoading(true);
+      const res = await fetch(`${API_BASE_URL}/Servicios`, {
+        method: 'GET',
+        headers: getAuthHeaders()
+      });
+
+      if (res.status === 401) {
+        showSnackbar('Sesión expirada', 'error');
+        window.location.href = '/';
+        return;
+      }
+
+      if (res.ok) {
+        const data = await res.json();
+        setServicios(data);
+        setFilteredServicios(data);
+      } else {
+        showSnackbar('Error al cargar servicios', 'error');
+      }
+    } catch (error) {
+      console.error('Error en fetchServicios:', error);
+      showSnackbar('Error al cargar servicios', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     fetchServicios();
@@ -102,14 +114,14 @@ export default function ServiciosList() {
       setFormData({
         nombre: servicio.nombre,
         codigo: servicio.codigo,
-        maxPerfiles: servicio.maxPerfiles ?? 0  // CAMBIO: Usar 0 como valor por defecto
+        maxPerfiles: servicio.maxPerfiles ?? 0
       });
     } else {
       setEditingServicio(null);
       setFormData({
         nombre: '',
         codigo: '',
-        maxPerfiles: 0  // CAMBIO: Valor inicial 0
+        maxPerfiles: 0
       });
     }
     setFormErrors({});
@@ -127,25 +139,35 @@ export default function ServiciosList() {
     setDeleting(false);
   };
 
+  // ✅ handleDelete corregido
   const handleDelete = async () => {
     if (!servicioToDelete) return;
+    if (!checkToken()) return;
     
     setDeleting(true);
     try {
       const res = await fetch(`${API_BASE_URL}/Servicios/${servicioToDelete.idServicio}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        headers: getAuthHeaders()
       });
+
+      if (res.status === 401) {
+        showSnackbar('Sesión expirada', 'error');
+        window.location.href = '/';
+        return;
+      }
 
       const data = await res.json();
 
       if (res.ok) {
         showSnackbar(data.message || 'Servicio desactivado correctamente', 'success');
-        fetchServicios();
+        await fetchServicios(); // 👈 ESPERAR A QUE TERMINE
         handleCloseDeleteDialog();
       } else {
         showSnackbar(data.message || 'Error al desactivar el servicio', 'error');
       }
-    } catch  {
+    } catch (error) {
+      console.error('Error:', error);
       showSnackbar('Error de conexión al servidor', 'error');
     } finally {
       setDeleting(false);
@@ -177,10 +199,10 @@ export default function ServiciosList() {
     return Object.keys(errors).length === 0;
   };
 
+  // ✅ handleSubmit corregido
   const handleSubmit = async () => {
-    if (!validateForm()) {
-      return;
-    }
+    if (!validateForm()) return;
+    if (!checkToken()) return;
 
     setLoading(true);
     try {
@@ -192,25 +214,32 @@ export default function ServiciosList() {
 
       const res = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           ...formData,
-          maxPerfiles: formData.maxPerfiles || 0  // Asegurar que sea 0 si está vacío
+          maxPerfiles: formData.maxPerfiles || 0
         })
       });
+
+      if (res.status === 401) {
+        showSnackbar('Sesión expirada', 'error');
+        window.location.href = '/';
+        return;
+      }
 
       if (res.ok) {
         showSnackbar(
           editingServicio ? 'Servicio actualizado' : 'Servicio creado',
           'success'
         );
-        fetchServicios();
+        await fetchServicios(); // 👈 ESPERAR A QUE TERMINE
         setOpenDialog(false);
       } else {
         const error = await res.json();
         showSnackbar(error.message || 'Error al guardar', 'error');
       }
-    } catch  {
+    } catch (error) {
+      console.error('Error:', error);
       showSnackbar('Error al guardar', 'error');
     } finally {
       setLoading(false);
@@ -224,7 +253,6 @@ export default function ServiciosList() {
   const handleChange = (e) => {
     const { name, value } = e.target;
     
-    // Para maxPerfiles, convertir a número o 0
     if (name === 'maxPerfiles') {
       const numValue = value === '' ? 0 : parseInt(value, 10);
       setFormData({
@@ -238,7 +266,6 @@ export default function ServiciosList() {
       });
     }
     
-    // Limpiar error del campo
     if (formErrors[name]) {
       setFormErrors({
         ...formErrors,
@@ -265,7 +292,6 @@ export default function ServiciosList() {
   const canDeleteServicio = (servicio) => {
     const hasPlanesActivos = servicio.planes?.some(p => p.estado === "ACTIVO");
     const hasCuentas = servicio.cuentas?.length > 0;
-    
     return !hasPlanesActivos && !hasCuentas;
   };
 
@@ -544,8 +570,6 @@ export default function ServiciosList() {
                         </TableCell>
                         <TableCell sx={{ py: 0.5 }}>
                           <Box sx={{ display: 'flex', gap: 0.5 }}>
-                            
-
                             <Tooltip title="Editar servicio">
                               <IconButton
                                 size="small"
@@ -602,7 +626,7 @@ export default function ServiciosList() {
                   })}
                   {paginatedServicios.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={7} align="center" sx={{ py: 3, fontSize: '0.8rem' }}>
+                      <TableCell colSpan={6} align="center" sx={{ py: 3, fontSize: '0.8rem' }}>
                         {servicios.length === 0 ? 'No hay servicios registrados' : 'No se encontraron servicios'}
                       </TableCell>
                     </TableRow>
@@ -700,7 +724,7 @@ export default function ServiciosList() {
               error={!!formErrors.maxPerfiles}
               helperText={formErrors.maxPerfiles || "0 = no genera PINs ni perfiles en tarjetas"}
               InputProps={{ 
-                inputProps: { min: 0, max: 99 }, // CAMBIO: min: 0
+                inputProps: { min: 0, max: 99 },
                 style: { fontSize: '0.85rem' }
               }}
               InputLabelProps={{ style: { fontSize: '0.85rem' } }}
