@@ -124,7 +124,7 @@ export default function PlanForm({ open, onClose, planData, servicios, onSave })
         const errorData = await res.json();
         setError(errorData.message || 'Error al guardar el plan');
       }
-    } catch (err) {
+    } catch  {
       setError('Error de conexión al servidor');
     } finally {
       setLoading(false);

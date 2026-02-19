@@ -11,6 +11,7 @@ import {
   CheckCircle, Error, CardGiftcard
 } from '@mui/icons-material';
 import { API_BASE_URL } from '../config';
+import ServicioForm from './ServicioForm'; // 👈 Importar el nuevo componente
 
 // Definición de colores
 const COLOR_PALETTE = {
@@ -28,20 +29,17 @@ export default function ServiciosList() {
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(20);
-  const [openDialog, setOpenDialog] = useState(false);
+  
+  // Estados para diálogos (IGUAL QUE EN PLANESLIST)
+  const [openServicioForm, setOpenServicioForm] = useState(false);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+  const [editingServicio, setEditingServicio] = useState(null);
   const [servicioToDelete, setServicioToDelete] = useState(null);
   const [deleting, setDeleting] = useState(false);
-  const [editingServicio, setEditingServicio] = useState(null);
-  const [formData, setFormData] = useState({
-    nombre: '',
-    codigo: '',
-    maxPerfiles: 0
-  });
-  const [formErrors, setFormErrors] = useState({});
+  
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
-  // ✅ Función para obtener headers con token (IGUAL QUE EN PLANESLIST)
+  // ✅ Función para obtener headers con token
   const getAuthHeaders = () => {
     const token = localStorage.getItem('token');
     return {
@@ -52,7 +50,7 @@ export default function ServiciosList() {
     };
   };
 
-  // ✅ Verificar token antes de peticiones (IGUAL QUE EN PLANESLIST)
+  // ✅ Verificar token antes de peticiones
   const checkToken = () => {
     const token = localStorage.getItem('token');
     if (!token) {
@@ -63,7 +61,7 @@ export default function ServiciosList() {
     return true;
   };
 
-  // ✅ fetchServicios corregido
+  // ✅ fetchServicios
   const fetchServicios = async () => {
     if (!checkToken()) return;
     
@@ -108,24 +106,9 @@ export default function ServiciosList() {
     setPage(0);
   }, [search, servicios]);
 
-  const handleOpenDialog = (servicio = null) => {
-    if (servicio) {
-      setEditingServicio(servicio);
-      setFormData({
-        nombre: servicio.nombre,
-        codigo: servicio.codigo,
-        maxPerfiles: servicio.maxPerfiles ?? 0
-      });
-    } else {
-      setEditingServicio(null);
-      setFormData({
-        nombre: '',
-        codigo: '',
-        maxPerfiles: 0
-      });
-    }
-    setFormErrors({});
-    setOpenDialog(true);
+  const handleOpenServicioForm = (servicio = null) => {
+    setEditingServicio(servicio);
+    setOpenServicioForm(true);
   };
 
   const handleOpenDeleteDialog = (servicio) => {
@@ -139,7 +122,7 @@ export default function ServiciosList() {
     setDeleting(false);
   };
 
-  // ✅ handleDelete corregido
+  // ✅ handleDelete
   const handleDelete = async () => {
     if (!servicioToDelete) return;
     if (!checkToken()) return;
@@ -161,7 +144,7 @@ export default function ServiciosList() {
 
       if (res.ok) {
         showSnackbar(data.message || 'Servicio desactivado correctamente', 'success');
-        await fetchServicios(); // 👈 ESPERAR A QUE TERMINE
+        await fetchServicios();
         handleCloseDeleteDialog();
       } else {
         showSnackbar(data.message || 'Error al desactivar el servicio', 'error');
@@ -174,110 +157,9 @@ export default function ServiciosList() {
     }
   };
 
-  const validateForm = () => {
-    const errors = {};
-    
-    if (!formData.nombre.trim()) {
-      errors.nombre = 'El nombre es requerido';
-    } else if (formData.nombre.length > 50) {
-      errors.nombre = 'El nombre no puede exceder 50 caracteres';
-    }
-    
-    if (!formData.codigo.trim()) {
-      errors.codigo = 'El código es requerido';
-    } else if (formData.codigo.length > 10) {
-      errors.codigo = 'El código no puede exceder 10 caracteres';
-    }
-    
-    if (formData.maxPerfiles < 0) {
-      errors.maxPerfiles = 'El valor no puede ser negativo';
-    } else if (formData.maxPerfiles > 99) {
-      errors.maxPerfiles = 'El valor máximo es 99';
-    }
-    
-    setFormErrors(errors);
-    return Object.keys(errors).length === 0;
-  };
-
-  // ✅ handleSubmit corregido
-  const handleSubmit = async () => {
-    if (!validateForm()) return;
-    if (!checkToken()) return;
-
-    setLoading(true);
-    try {
-      const url = editingServicio 
-        ? `${API_BASE_URL}/Servicios/${editingServicio.idServicio}`
-        : `${API_BASE_URL}/Servicios`;
-      
-      const method = editingServicio ? 'PUT' : 'POST';
-
-      const res = await fetch(url, {
-        method,
-        headers: getAuthHeaders(),
-        body: JSON.stringify({
-          ...formData,
-          maxPerfiles: formData.maxPerfiles || 0
-        })
-      });
-
-      if (res.status === 401) {
-        showSnackbar('Sesión expirada', 'error');
-        window.location.href = '/';
-        return;
-      }
-
-      if (res.ok) {
-        showSnackbar(
-          editingServicio ? 'Servicio actualizado' : 'Servicio creado',
-          'success'
-        );
-        await fetchServicios(); // 👈 ESPERAR A QUE TERMINE
-        setOpenDialog(false);
-      } else {
-        const error = await res.json();
-        showSnackbar(error.message || 'Error al guardar', 'error');
-      }
-    } catch (error) {
-      console.error('Error:', error);
-      showSnackbar('Error al guardar', 'error');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const showSnackbar = (message, severity = 'success') => {
     setSnackbar({ open: true, message, severity });
   };
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    
-    if (name === 'maxPerfiles') {
-      const numValue = value === '' ? 0 : parseInt(value, 10);
-      setFormData({
-        ...formData,
-        [name]: isNaN(numValue) ? 0 : numValue
-      });
-    } else {
-      setFormData({
-        ...formData,
-        [name]: value
-      });
-    }
-    
-    if (formErrors[name]) {
-      setFormErrors({
-        ...formErrors,
-        [name]: ''
-      });
-    }
-  };
-
-  const paginatedServicios = filteredServicios.slice(
-    page * rowsPerPage,
-    page * rowsPerPage + rowsPerPage
-  );
 
   const getServicioColor = (nombre) => {
     const colors = ['#667eea', '#764ba2', '#f093fb', '#f5576c', '#4facfe'];
@@ -325,6 +207,11 @@ export default function ServiciosList() {
     );
   };
 
+  const paginatedServicios = filteredServicios.slice(
+    page * rowsPerPage,
+    page * rowsPerPage + rowsPerPage
+  );
+
   return (
     <Box sx={{ p: 1, bgcolor: `${COLOR_PALETTE.dark}05`, minHeight: "100vh" }}>
       {/* Header Compacto */}
@@ -357,7 +244,7 @@ export default function ServiciosList() {
               variant="contained"
               size="small"
               startIcon={<Add sx={{ fontSize: '1rem' }} />}
-              onClick={() => handleOpenDialog()}
+              onClick={() => handleOpenServicioForm()}
               sx={{
                 background: `linear-gradient(90deg, ${COLOR_PALETTE.primary}, ${COLOR_PALETTE.secondary})`,
                 borderRadius: 1,
@@ -423,58 +310,22 @@ export default function ServiciosList() {
               <Table size="small" stickyHeader>
                 <TableHead>
                   <TableRow>
-                    <TableCell sx={{
-                      fontWeight: "bold",
-                      fontSize: '0.75rem',
-                      py: 0.5,
-                      backgroundColor: COLOR_PALETTE.primary,
-                      color: 'white'
-                    }}>
+                    <TableCell sx={{ fontWeight: "bold", fontSize: '0.75rem', py: 0.5, backgroundColor: COLOR_PALETTE.primary, color: 'white' }}>
                       Servicio
                     </TableCell>
-                    <TableCell sx={{
-                      fontWeight: "bold",
-                      fontSize: '0.75rem',
-                      py: 0.5,
-                      backgroundColor: COLOR_PALETTE.primary,
-                      color: 'white'
-                    }}>
+                    <TableCell sx={{ fontWeight: "bold", fontSize: '0.75rem', py: 0.5, backgroundColor: COLOR_PALETTE.primary, color: 'white' }}>
                       Código
                     </TableCell>
-                    <TableCell sx={{
-                      fontWeight: "bold",
-                      fontSize: '0.75rem',
-                      py: 0.5,
-                      backgroundColor: COLOR_PALETTE.primary,
-                      color: 'white'
-                    }}>
+                    <TableCell sx={{ fontWeight: "bold", fontSize: '0.75rem', py: 0.5, backgroundColor: COLOR_PALETTE.primary, color: 'white' }}>
                       Máx. Perfiles
                     </TableCell>
-                    <TableCell sx={{
-                      fontWeight: "bold",
-                      fontSize: '0.75rem',
-                      py: 0.5,
-                      backgroundColor: COLOR_PALETTE.primary,
-                      color: 'white'
-                    }}>
+                    <TableCell sx={{ fontWeight: "bold", fontSize: '0.75rem', py: 0.5, backgroundColor: COLOR_PALETTE.primary, color: 'white' }}>
                       Planes
                     </TableCell>
-                    <TableCell sx={{
-                      fontWeight: "bold",
-                      fontSize: '0.75rem',
-                      py: 0.5,
-                      backgroundColor: COLOR_PALETTE.primary,
-                      color: 'white'
-                    }}>
+                    <TableCell sx={{ fontWeight: "bold", fontSize: '0.75rem', py: 0.5, backgroundColor: COLOR_PALETTE.primary, color: 'white' }}>
                       Estado
                     </TableCell>
-                    <TableCell sx={{
-                      fontWeight: "bold",
-                      fontSize: '0.75rem',
-                      py: 0.5,
-                      backgroundColor: COLOR_PALETTE.primary,
-                      color: 'white'
-                    }}>
+                    <TableCell sx={{ fontWeight: "bold", fontSize: '0.75rem', py: 0.5, backgroundColor: COLOR_PALETTE.primary, color: 'white' }}>
                       Acciones
                     </TableCell>
                   </TableRow>
@@ -573,7 +424,7 @@ export default function ServiciosList() {
                             <Tooltip title="Editar servicio">
                               <IconButton
                                 size="small"
-                                onClick={() => handleOpenDialog(servicio)}
+                                onClick={() => handleOpenServicioForm(servicio)}
                                 disabled={servicio.estado === 'INACTIVO'}
                                 sx={{
                                   color: servicio.estado === 'INACTIVO' ? 
@@ -666,99 +517,26 @@ export default function ServiciosList() {
         )}
       </Paper>
 
-      {/* Diálogo de Crear/Editar */}
-      <Dialog 
-        open={openDialog} 
-        onClose={() => setOpenDialog(false)} 
-        maxWidth="sm" 
-        fullWidth
-      >
-        <DialogTitle
-          sx={{
-            background: `linear-gradient(90deg, ${COLOR_PALETTE.primary}, ${COLOR_PALETTE.secondary})`,
-            color: 'white',
-            fontWeight: 'bold',
-            py: 1.5
+      {/* FORMULARIO DE SERVICIO - IGUAL QUE PLANESLIST */}
+      {openServicioForm && (
+        <ServicioForm
+          open={openServicioForm}
+          onClose={() => {
+            setOpenServicioForm(false);
+            setEditingServicio(null);
           }}
-        >
-          {editingServicio ? '✏️ Editar Servicio' : '➕ Nuevo Servicio'}
-        </DialogTitle>
-        <DialogContent sx={{ p: 2 }}>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, mt: 1 }}>
-            <TextField
-              fullWidth
-              label="Nombre del Servicio *"
-              name="nombre"
-              size="small"
-              value={formData.nombre}
-              onChange={handleChange}
-              placeholder="Ej: Netflix, Disney+, HBO Max"
-              error={!!formErrors.nombre}
-              helperText={formErrors.nombre}
-              InputProps={{ style: { fontSize: '0.85rem' } }}
-              InputLabelProps={{ style: { fontSize: '0.85rem' } }}
-              FormHelperTextProps={{ style: { fontSize: '0.75rem' } }}
-            />
-            <TextField
-              fullWidth
-              label="Código *"
-              name="codigo"
-              size="small"
-              value={formData.codigo}
-              onChange={handleChange}
-              placeholder="Ej: NETFLIX, DISNEY, HBO"
-              error={!!formErrors.codigo}
-              helperText={formErrors.codigo}
-              InputProps={{ style: { fontSize: '0.85rem' } }}
-              InputLabelProps={{ style: { fontSize: '0.85rem' } }}
-              FormHelperTextProps={{ style: { fontSize: '0.75rem' } }}
-            />
-            <TextField
-              fullWidth
-              label="Máximo de Perfiles"
-              name="maxPerfiles"
-              type="number"
-              size="small"
-              value={formData.maxPerfiles}
-              onChange={handleChange}
-              error={!!formErrors.maxPerfiles}
-              helperText={formErrors.maxPerfiles || "0 = no genera PINs ni perfiles en tarjetas"}
-              InputProps={{ 
-                inputProps: { min: 0, max: 99 },
-                style: { fontSize: '0.85rem' }
-              }}
-              InputLabelProps={{ style: { fontSize: '0.85rem' } }}
-              FormHelperTextProps={{ style: { fontSize: '0.75rem' } }}
-            />
-          </Box>
-        </DialogContent>
-        <DialogActions sx={{ p: 1.5 }}>
-          <Button 
-            onClick={() => setOpenDialog(false)} 
-            disabled={loading}
-            size="small"
-            sx={{ fontSize: '0.8rem' }}
-          >
-            Cancelar
-          </Button>
-          <Button
-            variant="contained"
-            onClick={handleSubmit}
-            disabled={loading}
-            size="small"
-            startIcon={loading ? <CircularProgress size={16} /> : null}
-            sx={{
-              background: `linear-gradient(90deg, ${COLOR_PALETTE.primary}, ${COLOR_PALETTE.secondary})`,
-              fontSize: '0.8rem',
-              px: 2
-            }}
-          >
-            {editingServicio ? 'Actualizar' : 'Crear'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+          servicioData={editingServicio}
+          onSave={() => {
+            fetchServicios();
+            showSnackbar(
+              editingServicio ? "Servicio actualizado correctamente" : "Servicio creado correctamente",
+              "success"
+            );
+          }}
+        />
+      )}
 
-      {/* Diálogo de Confirmación de Desactivación */}
+      {/* DIÁLOGO DE ELIMINAR */}
       <Dialog 
         open={openDeleteDialog} 
         onClose={handleCloseDeleteDialog}
