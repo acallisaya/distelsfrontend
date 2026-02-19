@@ -1322,118 +1322,125 @@ export default function PaginaPublicaPro() {
  
 
   const renderFormularioActivacion = () => {
-    if (!mostrarFormularioActivacion) return null;
+  if (!mostrarFormularioActivacion) return null;
 
-    const { colorPrimario, cardBackground, textoColor, fondoClaro } = getColors();
-    const bordeColor = fondoClaro ? `${colorPrimario}15` : `${colorPrimario}30`;
+  const { colorPrimario, cardBackground, textoColor, fondoClaro } = getColors();
+  const bordeColor = fondoClaro ? `${colorPrimario}15` : `${colorPrimario}30`;
 
-    return (
-      <Box id="activacion-tarjetas-section" sx={{ 
-        mb: 2,
-        display: 'flex',
-        justifyContent: 'center'
+  return (
+    <Box id="activacion-tarjetas-section" sx={{ 
+      mb: 2,
+      display: 'flex',
+      justifyContent: 'center'
+    }}>
+      <Paper elevation={0} sx={{ 
+        borderRadius: 1.2, 
+        p: 1.5, 
+        border: `1px solid ${bordeColor}`,
+        width: '100%',
+        maxWidth: '320px',
+        bgcolor: cardBackground,
+        boxShadow: `0 2px 8px ${colorPrimario}10`
       }}>
-        <Paper elevation={0} sx={{ 
-          borderRadius: 1.2, 
-          p: 1.5, 
-          border: `1px solid ${bordeColor}`,
-          width: '100%',
-          maxWidth: '320px',
-          bgcolor: cardBackground,
-          boxShadow: `0 2px 8px ${colorPrimario}10`
+        <Box sx={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center', 
+          mb: 1.2 
         }}>
-          <Box sx={{ 
-            display: 'flex', 
-            justifyContent: 'space-between', 
-            alignItems: 'center', 
-            mb: 1.2 
+          <Typography variant="subtitle2" sx={{ 
+            fontWeight: 600, 
+            fontSize: '0.8rem',
+            color: colorPrimario
           }}>
-            <Typography variant="subtitle2" sx={{ 
-              fontWeight: 600, 
-              fontSize: '0.8rem',
-              color: colorPrimario
-            }}>
-              🎫 Activar Tarjeta
-            </Typography>
-            <IconButton 
-              size="small"
-              onClick={toggleFormularioActivacion}
-              sx={{ 
-                p: 0.2, 
-                color: textoColor,
-                opacity: 0.5,
-                '&:hover': { opacity: 1 }
-              }}
-            >
-              <Close fontSize="small" />
-            </IconButton>
-          </Box>
-          
-          <ActivacionClienteFinalPage 
-            embedded={true}
-            onClose={toggleFormularioActivacion}
-          />
-        </Paper>
-      </Box>
-    );
-  };
+            🎫 Activar Tarjeta
+          </Typography>
+          <IconButton 
+            size="small"
+            onClick={toggleFormularioActivacion}
+            sx={{ 
+              p: 0.2, 
+              color: textoColor,
+              opacity: 0.5,
+              '&:hover': { opacity: 1 }
+            }}
+          >
+            <Close fontSize="small" />
+          </IconButton>
+        </Box>
+        
+        <ActivacionClienteFinalPage 
+          embedded={true}
+          onClose={toggleFormularioActivacion}
+          colorPrimario={colorPrimario}
+          colorFondo={cardBackground}
+          textoColor={textoColor}
+          fondoClaro={fondoClaro}
+        />
+      </Paper>
+    </Box>
+  );
+};
 
-  const renderFormularioVerificacion = () => {
-    if (!mostrarFormularioVerificacion) return null;
+ const renderFormularioVerificacion = () => {
+  if (!mostrarFormularioVerificacion) return null;
 
-    const { colorPrimario, cardBackground, textoColor, fondoClaro } = getColors();
-    const bordeColor = fondoClaro ? `${colorPrimario}15` : `${colorPrimario}30`;
+  const { colorPrimario, cardBackground, textoColor, fondoClaro } = getColors();
+  const bordeColor = fondoClaro ? `${colorPrimario}15` : `${colorPrimario}30`;
 
-    return (
-      <Box id="verificacion-tarjetas-section" sx={{ 
-        mb: 2,
-        display: 'flex',
-        justifyContent: 'center'
+  return (
+    <Box id="verificacion-tarjetas-section" sx={{ 
+      mb: 2,
+      display: 'flex',
+      justifyContent: 'center'
+    }}>
+      <Paper elevation={0} sx={{ 
+        borderRadius: 1.2, 
+        p: 1.5, 
+        border: `1px solid ${bordeColor}`,
+        width: '100%',
+        maxWidth: '320px',
+        bgcolor: cardBackground,
+        boxShadow: `0 2px 8px ${colorPrimario}10`
       }}>
-        <Paper elevation={0} sx={{ 
-          borderRadius: 1.2, 
-          p: 1.5, 
-          border: `1px solid ${bordeColor}`,
-          width: '100%',
-          maxWidth: '320px',
-          bgcolor: cardBackground,
-          boxShadow: `0 2px 8px ${colorPrimario}10`
+        <Box sx={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center', 
+          mb: 1.2 
         }}>
-          <Box sx={{ 
-            display: 'flex', 
-            justifyContent: 'space-between', 
-            alignItems: 'center', 
-            mb: 1.2 
+          <Typography variant="subtitle2" sx={{ 
+            fontWeight: 600, 
+            fontSize: '0.8rem',
+            color: colorPrimario
           }}>
-            <Typography variant="subtitle2" sx={{ 
-              fontWeight: 600, 
-              fontSize: '0.8rem',
-              color: colorPrimario
-            }}>
-              🔍 Verificar Tarjeta
-            </Typography>
-            <IconButton 
-              size="small"
-              onClick={toggleFormularioVerificacion}
-              sx={{ 
-                p: 0.2, 
-                color: textoColor,
-                opacity: 0.5,
-                '&:hover': { opacity: 1 }
-              }}
-            >
-              <Close fontSize="small" />
-            </IconButton>
-          </Box>
-          
-          <VerificacionTarjetaEmbedded 
-            onClose={toggleFormularioVerificacion}
-            colorPrimario={colorPrimario}
-          />
-        </Paper>
-      </Box>
-    );
-  };
+            🔍 Verificar Tarjeta
+          </Typography>
+          <IconButton 
+            size="small"
+            onClick={toggleFormularioVerificacion}
+            sx={{ 
+              p: 0.2, 
+              color: textoColor,
+              opacity: 0.5,
+              '&:hover': { opacity: 1 }
+            }}
+          >
+            <Close fontSize="small" />
+          </IconButton>
+        </Box>
+        
+        <VerificacionTarjetaEmbedded 
+          onClose={toggleFormularioVerificacion}
+          colorPrimario={colorPrimario}
+          colorFondo={cardBackground}
+          textoColor={textoColor}
+          fondoClaro={fondoClaro}
+        />
+      </Paper>
+    </Box>
+  );
+};
 
   const renderGestionTarjetas = () => {
     if (!mostrarGestionTarjetas) return null;

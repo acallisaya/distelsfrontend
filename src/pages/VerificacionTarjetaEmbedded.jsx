@@ -2,18 +2,30 @@
 import React, { useState } from 'react';
 import { API_BASE_URL } from '../config';
 
-const VerificacionTarjetaEmbedded = () => {
-  const [codigo, setCodigo] = useState('909868548921455');
+const VerificacionTarjetaEmbedded = ({ 
+  onClose, 
+  colorPrimario = '#2196F3',
+  colorFondo,
+  textoColor,
+  fondoClaro = true 
+}) => {
+  const [codigo, setCodigo] = useState('');
   const [loading, setLoading] = useState(false);
   const [datos, setDatos] = useState(null);
   const [error, setError] = useState('');
+
+  // Determinar colores según props
+  const backgroundColor = colorFondo || (fondoClaro ? '#ffffff' : '#1a1a1a');
+  const textColor = textoColor || (fondoClaro ? '#333333' : '#ffffff');
+  const borderColor = fondoClaro ? '#ccc' : '#555';
+  const buttonColor = loading ? '#ccc' : colorPrimario;
 
   // ========== FUNCIÓN PARA OBTENER HEADERS CON NGROK ==========
   const getHeaders = () => {
     return {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
-      'ngrok-skip-browser-warning': 'true' // 👈 HEADER CLAVE PARA NGROK
+      'ngrok-skip-browser-warning': 'true'
     };
   };
 
@@ -22,9 +34,8 @@ const VerificacionTarjetaEmbedded = () => {
     setError('');
     
     try {
-      // ✅ USAR API_BASE_URL EN LUGAR DE LOCALHOST
       const res = await fetch(`${API_BASE_URL}/Tarjetas/verificar/${codigo}`, {
-        headers: getHeaders() // 👈 AGREGAR HEADERS
+        headers: getHeaders()
       });
       
       if (!res.ok) {
@@ -52,15 +63,15 @@ const VerificacionTarjetaEmbedded = () => {
   const getEstadoColor = (estado) => {
     switch(estado) {
       case 'ACTIVADA':
-        return '#4CAF50'; // Verde
+        return '#4CAF50';
       case 'ASIGNADA':
-        return '#FF9800'; // Naranja
+        return '#FF9800';
       case 'VENCIDA':
-        return '#F44336'; // Rojo
+        return '#F44336';
       case 'GENERADA':
-        return '#2196F3'; // Azul
+        return '#2196F3';
       default:
-        return '#757575'; // Gris
+        return '#757575';
     }
   };
 
@@ -70,7 +81,10 @@ const VerificacionTarjetaEmbedded = () => {
       maxWidth: '400px', 
       margin: '0 auto',
       fontFamily: 'Arial, sans-serif',
-      fontSize: '13px'
+      fontSize: '13px',
+      backgroundColor,
+      color: textColor,
+      borderRadius: '4px'
     }}>
       
       {/* INPUT Y BOTÓN */}
@@ -87,9 +101,11 @@ const VerificacionTarjetaEmbedded = () => {
           style={{
             flex: 1,
             padding: '10px',
-            border: '1px solid #ccc',
+            border: `1px solid ${borderColor}`,
             borderRadius: '4px',
-            fontSize: '14px'
+            fontSize: '14px',
+            backgroundColor: fondoClaro ? '#ffffff' : '#2d2d2d',
+            color: textColor
           }}
         />
         <button
@@ -97,7 +113,7 @@ const VerificacionTarjetaEmbedded = () => {
           disabled={loading || !codigo}
           style={{
             padding: '10px 15px',
-            backgroundColor: loading ? '#ccc' : '#2196F3',
+            backgroundColor: buttonColor,
             color: 'white',
             border: 'none',
             borderRadius: '4px',
@@ -128,13 +144,14 @@ const VerificacionTarjetaEmbedded = () => {
       {/* RESULTADO */}
       {datos && (
         <div style={{
-          backgroundColor: '#f5f5f5',
-          border: '1px solid #ddd',
+          backgroundColor: fondoClaro ? '#f5f5f5' : '#2d2d2d',
+          border: `1px solid ${borderColor}`,
           borderRadius: '6px',
           padding: '15px',
-          fontSize: '12px'
+          fontSize: '12px',
+          color: textColor
         }}>
-          {/* ESTADO - CON COLOR CORRECTO */}
+          {/* ESTADO */}
           <div style={{
             backgroundColor: getEstadoColor(datos.estado),
             color: 'white',
@@ -156,7 +173,7 @@ const VerificacionTarjetaEmbedded = () => {
               marginBottom: '4px',
               fontSize: '12px'
             }}>
-              <span style={{ color: '#666' }}>Código:</span>
+              <span style={{ color: fondoClaro ? '#666' : '#aaa' }}>Código:</span>
               <strong style={{ fontFamily: 'monospace' }}>{datos.codigo}</strong>
             </div>
             <div style={{ 
@@ -164,7 +181,7 @@ const VerificacionTarjetaEmbedded = () => {
               justifyContent: 'space-between',
               fontSize: '12px'
             }}>
-              <span style={{ color: '#666' }}>Serie:</span>
+              <span style={{ color: fondoClaro ? '#666' : '#aaa' }}>Serie:</span>
               <span>{datos.serie}</span>
             </div>
           </div>
@@ -172,10 +189,11 @@ const VerificacionTarjetaEmbedded = () => {
           {/* PLAN Y SERVICIO */}
           {datos.plan && (
             <div style={{
-              backgroundColor: '#e3f2fd',
+              backgroundColor: fondoClaro ? '#e3f2fd' : '#1a237e',
               padding: '10px',
               borderRadius: '4px',
-              marginBottom: '12px'
+              marginBottom: '12px',
+              color: fondoClaro ? '#000' : '#fff'
             }}>
               <div style={{ 
                 display: 'flex', 
@@ -183,7 +201,7 @@ const VerificacionTarjetaEmbedded = () => {
                 marginBottom: '4px',
                 fontSize: '12px'
               }}>
-                <span style={{ color: '#666' }}>Plan:</span>
+                <span style={{ color: fondoClaro ? '#666' : '#aaa' }}>Plan:</span>
                 <strong>{datos.plan.nombre}</strong>
               </div>
               <div style={{ 
@@ -192,7 +210,7 @@ const VerificacionTarjetaEmbedded = () => {
                 marginBottom: '4px',
                 fontSize: '12px'
               }}>
-                <span style={{ color: '#666' }}>Duración:</span>
+                <span style={{ color: fondoClaro ? '#666' : '#aaa' }}>Duración:</span>
                 <span>{datos.plan.duracionDias} días</span>
               </div>
               {datos.plan.servicio && (
@@ -201,7 +219,7 @@ const VerificacionTarjetaEmbedded = () => {
                   justifyContent: 'space-between',
                   fontSize: '12px'
                 }}>
-                  <span style={{ color: '#666' }}>Servicio:</span>
+                  <span style={{ color: fondoClaro ? '#666' : '#aaa' }}>Servicio:</span>
                   <strong>{datos.plan.servicio.nombre}</strong>
                 </div>
               )}
@@ -210,10 +228,11 @@ const VerificacionTarjetaEmbedded = () => {
           
           {/* FECHAS */}
           <div style={{
-            backgroundColor: '#fff8e1',
+            backgroundColor: fondoClaro ? '#fff8e1' : '#4a2c00',
             padding: '10px',
             borderRadius: '4px',
-            marginBottom: '12px'
+            marginBottom: '12px',
+            color: fondoClaro ? '#000' : '#fff'
           }}>
             <div style={{ 
               display: 'flex', 
@@ -221,7 +240,7 @@ const VerificacionTarjetaEmbedded = () => {
               marginBottom: '4px',
               fontSize: '12px'
             }}>
-              <span style={{ color: '#666' }}>Activación:</span>
+              <span style={{ color: fondoClaro ? '#666' : '#aaa' }}>Activación:</span>
               <span>{new Date(datos.fechaActivacion).toLocaleDateString()}</span>
             </div>
             <div style={{ 
@@ -230,7 +249,7 @@ const VerificacionTarjetaEmbedded = () => {
               marginBottom: '4px',
               fontSize: '12px'
             }}>
-              <span style={{ color: '#666' }}>Vencimiento:</span>
+              <span style={{ color: fondoClaro ? '#666' : '#aaa' }}>Vencimiento:</span>
               <span>{new Date(datos.fechaVencimiento).toLocaleDateString()}</span>
             </div>
             <div style={{ 
@@ -238,7 +257,7 @@ const VerificacionTarjetaEmbedded = () => {
               justifyContent: 'space-between',
               fontSize: '12px'
             }}>
-              <span style={{ color: '#666' }}>Días restantes:</span>
+              <span style={{ color: fondoClaro ? '#666' : '#aaa' }}>Días restantes:</span>
               <strong style={{ 
                 color: datos.diasRestantes > 7 ? '#4CAF50' : '#f57c00'
               }}>
@@ -250,10 +269,11 @@ const VerificacionTarjetaEmbedded = () => {
           {/* CLIENTE FINAL */}
           {datos.clienteFinal && (
             <div style={{
-              backgroundColor: '#e8f5e9',
+              backgroundColor: fondoClaro ? '#e8f5e9' : '#1b5e20',
               padding: '10px',
               borderRadius: '4px',
-              marginBottom: '12px'
+              marginBottom: '12px',
+              color: fondoClaro ? '#000' : '#fff'
             }}>
               <div style={{ 
                 display: 'flex', 
@@ -261,7 +281,7 @@ const VerificacionTarjetaEmbedded = () => {
                 marginBottom: '4px',
                 fontSize: '12px'
               }}>
-                <span style={{ color: '#666' }}>Cliente:</span>
+                <span style={{ color: fondoClaro ? '#666' : '#aaa' }}>Cliente:</span>
                 <strong>{datos.clienteFinal.nombre}</strong>
               </div>
               {datos.clienteFinal.celular && (
@@ -270,7 +290,7 @@ const VerificacionTarjetaEmbedded = () => {
                   justifyContent: 'space-between',
                   fontSize: '12px'
                 }}>
-                  <span style={{ color: '#666' }}>Celular:</span>
+                  <span style={{ color: fondoClaro ? '#666' : '#aaa' }}>Celular:</span>
                   <span>{datos.clienteFinal.celular}</span>
                 </div>
               )}
@@ -306,11 +326,12 @@ const VerificacionTarjetaEmbedded = () => {
       {!datos && !loading && !error && (
         <div style={{
           textAlign: 'center',
-          color: '#666',
+          color: fondoClaro ? '#666' : '#aaa',
           padding: '15px',
-          backgroundColor: '#f9f9f9',
+          backgroundColor: fondoClaro ? '#f9f9f9' : '#2d2d2d',
           borderRadius: '4px',
-          fontSize: '13px'
+          fontSize: '13px',
+          border: `1px solid ${borderColor}`
         }}>
           👆 Ingresa un código y haz clic en VERIFICAR
         </div>

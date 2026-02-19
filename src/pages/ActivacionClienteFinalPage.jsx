@@ -66,8 +66,9 @@ export default function ActivacionClienteFinalPage({
   const backgroundColor = colorFondo || (fondoClaro ? '#ffffff' : '#1a1a1a');
   const textColor = textoColor || (fondoClaro ? '#333333' : '#ffffff');
   const contrastColor = getContrastColor(primaryColor);
-  const borderColor = fondoClaro ? 'rgba(0, 0, 0, 0.23)' : 'rgba(255, 255, 255, 0.23)';
+  const borderColor = fondoClaro ? 'rgba(0, 0, 0, 0.23)' : 'rgba(255, 255, 255, 0.5)';
   const hoverBorderColor = fondoClaro ? 'rgba(0, 0, 0, 0.87)' : 'rgba(255, 255, 255, 0.87)';
+  const labelColor = fondoClaro ? 'rgba(0, 0, 0, 0.7)' : 'rgba(255, 255, 255, 0.9)';
 
   const handleVerificarCodigo = async () => {
     if (!codigoTarjeta.trim() || codigoTarjeta.trim().length < 10) {
@@ -309,7 +310,8 @@ export default function ActivacionClienteFinalPage({
                     fontSize: '0.65rem', 
                     mx: 0,
                     textAlign: 'center',
-                    color: textColor
+                    color: textColor,
+                    opacity: 0.7
                   } 
                 }}
                 InputProps={{
@@ -332,8 +334,11 @@ export default function ActivacionClienteFinalPage({
                 }}
                 InputLabelProps={{
                   sx: {
-                    color: textColor,
-                    opacity: 0.7,
+                    color: labelColor,
+                    fontSize: '0.75rem',
+                    '&.Mui-focused': {
+                      color: primaryColor,
+                    },
                   }
                 }}
                 sx={{
@@ -375,8 +380,11 @@ export default function ActivacionClienteFinalPage({
                 }}
                 InputLabelProps={{
                   sx: {
-                    color: textColor,
-                    opacity: 0.7,
+                    color: labelColor,
+                    fontSize: '0.75rem',
+                    '&.Mui-focused': {
+                      color: primaryColor,
+                    },
                   }
                 }}
                 sx={{
@@ -404,7 +412,8 @@ export default function ActivacionClienteFinalPage({
                     fontSize: '0.65rem', 
                     mx: 0,
                     textAlign: 'center',
-                    color: textColor
+                    color: textColor,
+                    opacity: 0.7
                   } 
                 }}
                 InputProps={{
@@ -427,8 +436,11 @@ export default function ActivacionClienteFinalPage({
                 }}
                 InputLabelProps={{
                   sx: {
-                    color: textColor,
-                    opacity: 0.7,
+                    color: labelColor,
+                    fontSize: '0.75rem',
+                    '&.Mui-focused': {
+                      color: primaryColor,
+                    },
                   }
                 }}
                 sx={{
