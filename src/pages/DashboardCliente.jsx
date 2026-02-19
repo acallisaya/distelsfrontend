@@ -23,7 +23,6 @@ import {
   Tab,
   Tabs,
   Avatar,
-  
   LinearProgress,
   Tooltip
 } from '@mui/material';
@@ -94,11 +93,30 @@ export default function DashboardCliente() {
     severity: 'success'
   });
 
+  // ========== FUNCIÓN PARA OBTENER HEADERS CON TOKEN Y NGROK ==========
+  const getHeaders = () => {
+    const token = localStorage.getItem('clienteToken') || localStorage.getItem('token');
+    const headers = {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'ngrok-skip-browser-warning': 'true' // 👈 HEADER CLAVE PARA NGROK
+    };
+    
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    
+    return headers;
+  };
+
   // Verificar sesión y cargar datos
   useEffect(() => {
     const verificarSesion = () => {
       const session = localStorage.getItem('clienteSession');
-      if (!session) {
+      const token = localStorage.getItem('clienteToken') || localStorage.getItem('token');
+      
+      if (!session || !token) {
+        console.log('⛔ No hay sesión activa');
         navigate('/login/cliente');
         return;
       }
@@ -106,11 +124,13 @@ export default function DashboardCliente() {
       try {
         const sessionData = JSON.parse(session);
         if (sessionData.id !== parseInt(clienteId)) {
+          console.log('⛔ ID de sesión no coincide');
           navigate('/login/cliente');
           return;
         }
         loadClienteData(clienteId);
-      } catch  {
+      } catch (err) {
+        console.error('⛔ Error parseando sesión:', err);
         navigate('/login/cliente');
       }
     };
@@ -125,29 +145,39 @@ export default function DashboardCliente() {
       
       console.log('🔍 Cargando datos del cliente:', id);
       
-      // Cargar datos del cliente
-      const clienteRes = await fetch(`${API_BASE_URL}/Clientes/${id}`);
-      if (!clienteRes.ok) throw new Error('Error cargando cliente');
+      // Cargar datos del cliente CON HEADERS
+      const clienteRes = await fetch(`${API_BASE_URL}/Clientes/${id}`, {
+        headers: getHeaders()
+      });
+      
+      if (!clienteRes.ok) {
+        const text = await clienteRes.text();
+        console.error('Error respuesta:', text);
+        throw new Error(`Error ${clienteRes.status}: No se pudo cargar el cliente`);
+      }
+      
       const clienteData = await clienteRes.json();
       
-      // Cargar página del cliente
+      // Cargar página del cliente CON HEADERS
       let paginaData = null;
       try {
-        const paginaRes = await fetch(`${API_BASE_URL}/ClientePaginas/cliente/${id}`);
+        const paginaRes = await fetch(`${API_BASE_URL}/ClientePaginas/cliente/${id}`, {
+          headers: getHeaders()
+        });
         if (paginaRes.ok) {
           paginaData = await paginaRes.json();
           console.log('📄 Página cargada:', paginaData);
-        } else {
-          console.log('ℹ️ No hay página configurada para este cliente');
         }
       } catch (paginaErr) {
         console.log('⚠️ Error cargando página:', paginaErr);
       }
       
-      // Cargar WhatsApp del cliente
+      // Cargar WhatsApp del cliente CON HEADERS
       let whatsAppData = null;
       try {
-        const whatsAppRes = await fetch(`${API_BASE_URL}/ClienteWhatsApps/cliente/${id}`);
+        const whatsAppRes = await fetch(`${API_BASE_URL}/ClienteWhatsApps/cliente/${id}`, {
+          headers: getHeaders()
+        });
         if (whatsAppRes.ok) {
           whatsAppData = await whatsAppRes.json();
         }
@@ -194,7 +224,6 @@ export default function DashboardCliente() {
     const paginaData = pagina ? {
       ...pagina,
       clienteId: parseInt(clienteId),
-      // Asegurarse de incluir los elementos personalizados si existen
       serviciosPersonalizados: pagina.serviciosPersonalizados || [],
       testimoniosPersonalizados: pagina.testimoniosPersonalizados || [],
       galeriasImagenes: pagina.galeriasImagenes || [],
@@ -218,7 +247,6 @@ export default function DashboardCliente() {
     try {
       console.log('💾 Guardando página recibida:', paginaGuardada);
       
-      // Actualizar el estado local inmediatamente
       setPagina(paginaGuardada);
       setCliente(prev => ({
         ...prev,
@@ -227,7 +255,6 @@ export default function DashboardCliente() {
       
       setEditPaginaDialog(false);
       
-      // Recargar datos desde el servidor para estar seguro
       await loadClienteData(clienteId);
       
       showSnackbar('✅ Página guardada correctamente', 'success');
@@ -976,13 +1003,10 @@ export default function DashboardCliente() {
                 >
                   Cambiar Contraseña
                 </Button>
-               
               </Stack>
             </CardContent>
           </Card>
         </Grid>
-
-      
 
         <Grid item xs={12}>
           <Alert severity="warning" sx={{ borderRadius: 2 }}>
