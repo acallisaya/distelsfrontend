@@ -62,15 +62,28 @@ export default function GenerarTarjetasAuto() {
   const [showPassword, setShowPassword] = useState(false);
   const [detallesDialog, setDetallesDialog] = useState(false);
 
-  // ========== FUNCIONES DE CARGA ==========
+  // ========== FUNCIONES DE CARGA CON HEADERS CORREGIDOS ==========
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem('token');
+    return {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'ngrok-skip-browser-warning': 'true' // 👈 HEADER CLAVE PARA NGROK
+    };
+  };
+
   const fetchServicios = async () => {
     try {
-      const res = await fetch(`${API_BASE_URL}/Servicios`);
+      const res = await fetch(`${API_BASE_URL}/Servicios`, {
+        headers: getAuthHeaders()
+      });
       if (res.ok) {
         const data = await res.json();
         setServicios(data);
       }
-    } catch {
+    } catch (error) {
+      console.error('Error cargando servicios:', error);
       showSnackbar('Error cargando servicios', 'error');
     }
   };
@@ -78,15 +91,30 @@ export default function GenerarTarjetasAuto() {
   const fetchVendedores = async () => {
     try {
       setLoadingVendedores(true);
-      const res = await fetch(`${API_BASE_URL}/Clientes/tipo/VENDEDOR`);
-      if (res.ok) {
-        const data = await res.json();
-        const vendedoresData = data.data || data || [];
-        setVendedores(vendedoresData);
+      const res = await fetch(`${API_BASE_URL}/Clientes/tipo/VENDEDOR`, {
+        headers: getAuthHeaders()
+      });
+
+      if (!res.ok) {
+        throw new Error(`Error ${res.status}: ${res.statusText}`);
+      }
+
+      const responseData = await res.json();
+      console.log('✅ Vendedores recibidos:', responseData);
+      
+      // La API devuelve { success: true, data: [...] }
+      if (responseData.success && Array.isArray(responseData.data)) {
+        setVendedores(responseData.data);
+      } else if (Array.isArray(responseData)) {
+        setVendedores(responseData);
+      } else {
+        console.warn('Formato de respuesta inesperado:', responseData);
+        setVendedores([]);
       }
     } catch (err) {
-      console.error('Error cargando vendedores:', err);
-      showSnackbar('Error cargando vendedores', 'error');
+      console.error('❌ Error cargando vendedores:', err);
+      showSnackbar('Error cargando vendedores: ' + err.message, 'error');
+      setVendedores([]);
     } finally {
       setLoadingVendedores(false);
     }
@@ -94,14 +122,17 @@ export default function GenerarTarjetasAuto() {
 
   const fetchPlanesPorServicio = useCallback(async (idServicio) => {
     try {
-      const res = await fetch(`${API_BASE_URL}/Servicios/${idServicio}/planes`);
+      const res = await fetch(`${API_BASE_URL}/Servicios/${idServicio}/planes`, {
+        headers: getAuthHeaders()
+      });
       if (res.ok) {
         const data = await res.json();
         setPlanes(data);
       } else {
         setPlanes([]);
       }
-    } catch {
+    } catch (error) {
+      console.error('Error cargando planes:', error);
       showSnackbar('Error cargando planes', 'error');
       setPlanes([]);
     }
@@ -110,7 +141,9 @@ export default function GenerarTarjetasAuto() {
   const fetchEstadisticasCuentas = useCallback(async (idServicio) => {
     try {
       setLoadingInfo(true);
-      const res = await fetch(`${API_BASE_URL}/Cuentas/estadisticas`);
+      const res = await fetch(`${API_BASE_URL}/Cuentas/estadisticas`, {
+        headers: getAuthHeaders()
+      });
       if (res.ok) {
         const data = await res.json();
         const servicioStats = data.data?.estadisticasPorServicio
@@ -232,7 +265,7 @@ export default function GenerarTarjetasAuto() {
 
       const res = await fetch(`${API_BASE_URL}/Tarjetas/generar-automatico`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify(requestData)
       });
 
@@ -263,7 +296,9 @@ export default function GenerarTarjetasAuto() {
 
   const fetchTarjetasGeneradas = async (lote) => {
     try {
-      const res = await fetch(`${API_BASE_URL}/Tarjetas/lote/${lote}`);
+      const res = await fetch(`${API_BASE_URL}/Tarjetas/lote/${lote}`, {
+        headers: getAuthHeaders()
+      });
       if (res.ok) {
         const data = await res.json();
         setTarjetasGeneradas(data.data || []);
@@ -322,10 +357,15 @@ export default function GenerarTarjetasAuto() {
     formDataImg.append('imagen', imagenLote);
     formDataImg.append('lote', lote);
 
+    const token = localStorage.getItem('token');
     setLoadingImagen(true);
     try {
       const res = await fetch(`${API_BASE_URL}/Tarjetas/subir-imagen-lote`, {
         method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'ngrok-skip-browser-warning': 'true'
+        },
         body: formDataImg
       });
 
@@ -351,9 +391,15 @@ export default function GenerarTarjetasAuto() {
     }
 
     const lote = datos[0]?.lote || datos[0]?.Lote;
+    const token = localStorage.getItem('token');
     setLoadingPDF(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/Tarjetas/imprimir-con-imagen/${lote}`);
+      const res = await fetch(`${API_BASE_URL}/Tarjetas/imprimir-con-imagen/${lote}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'ngrok-skip-browser-warning': 'true'
+        }
+      });
       if (res.ok) {
         const blob = await res.blob();
         const url = window.URL.createObjectURL(blob);
@@ -388,7 +434,13 @@ export default function GenerarTarjetasAuto() {
         return;
       }
 
-      const res = await fetch(`${API_BASE_URL}/Tarjetas/lote/${lote}/csv`);
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${API_BASE_URL}/Tarjetas/lote/${lote}/csv`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'ngrok-skip-browser-warning': 'true'
+        }
+      });
       if (res.ok) {
         const blob = await res.blob();
         const url = window.URL.createObjectURL(blob);
