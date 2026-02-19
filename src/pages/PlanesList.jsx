@@ -24,6 +24,7 @@ const COLOR_PALETTE = {
 
 export default function PlanesList() {
   const [planes, setPlanes] = useState([]);
+  const [servicios, setServicios] = useState([]);
   const [filteredPlanes, setFilteredPlanes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -32,6 +33,7 @@ export default function PlanesList() {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(20);
   const [openDialog, setOpenDialog] = useState(false);
+  
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [editingPlan, setEditingPlan] = useState(null);
   const [planParaEliminar, setPlanParaEliminar] = useState(null);
@@ -46,76 +48,47 @@ export default function PlanesList() {
   
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
-  // ✅ Función para obtener headers con token
-  const getAuthHeaders = () => {
-    const token = localStorage.getItem('token');
-    return {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-      'ngrok-skip-browser-warning': 'true'
-    };
-  };
-
-  // ✅ Verificar token antes de peticiones
-  const checkToken = () => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      showSnackbar('Sesión expirada', 'error');
-      window.location.href = '/';
-      return false;
-    }
-    return true;
-  };
-
-  // ✅ Traer planes con servicios incluidos (como ClientesListPro)
   const fetchPlanes = async () => {
-    if (!checkToken()) return;
-    
     try {
       setLoading(true);
-      const res = await fetch(`${API_BASE_URL}/Planes?includeDetails=true`, {
-        headers: getAuthHeaders()
-      });
-      
-      if (res.status === 401) {
-        showSnackbar('Sesión expirada', 'error');
-        window.location.href = '/';
-        return;
-      }
-      
+      const res = await fetch(`${API_BASE_URL}/Planes`);
       if (res.ok) {
         const data = await res.json();
-        console.log('📥 Planes con servicios:', data);
         setPlanes(data);
         setFilteredPlanes(data);
-      } else {
-        showSnackbar('Error al cargar planes', 'error');
       }
-    } catch (error) {
-      console.error('Error:', error);
+    } catch  {
       showSnackbar('Error al cargar planes', 'error');
     } finally {
       setLoading(false);
     }
   };
 
-  // ✅ Cargar datos iniciales
+  const fetchServicios = async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/Servicios`);
+      if (res.ok) {
+        const data = await res.json();
+        setServicios(data);
+      }
+    } catch (err) {
+      console.error('Error cargando servicios:', err);
+    }
+  };
+
   useEffect(() => {
     fetchPlanes();
+    fetchServicios();
   }, []);
 
-  // ✅ Aplicar filtros (como ClientesListPro)
   useEffect(() => {
-    if (!planes.length) return;
-    
     let filtered = [...planes];
     
     if (search) {
       const lower = search.toLowerCase();
       filtered = filtered.filter(plan =>
         plan.nombre.toLowerCase().includes(lower) ||
-        plan.servicio?.nombre?.toLowerCase().includes(lower)
+        plan.servicio?.nombre.toLowerCase().includes(lower)
       );
     }
     
@@ -158,6 +131,8 @@ export default function PlanesList() {
     setOpenDialog(true);
   };
 
+  
+
   const handleOpenDeleteDialog = (plan) => {
     setPlanParaEliminar(plan);
     setOpenDeleteDialog(true);
@@ -169,9 +144,7 @@ export default function PlanesList() {
       return;
     }
 
-    if (!checkToken()) return;
     setLoading(true);
-    
     try {
       const url = editingPlan 
         ? `${API_BASE_URL}/Planes/${editingPlan.idPlan}`
@@ -181,63 +154,49 @@ export default function PlanesList() {
 
       const res = await fetch(url, {
         method,
-        headers: getAuthHeaders(),
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
       });
-
-      if (res.status === 401) {
-        showSnackbar('Sesión expirada', 'error');
-        window.location.href = '/';
-        return;
-      }
 
       if (res.ok) {
         showSnackbar(
           editingPlan ? 'Plan actualizado' : 'Plan creado',
           'success'
         );
-        await fetchPlanes(); // 👈 Recargar después de guardar
+        fetchPlanes();
         setOpenDialog(false);
       } else {
         const error = await res.json();
         showSnackbar(error.message || 'Error al guardar', 'error');
       }
-    } catch (error) {
-      console.error('Error:', error);
+    } catch  {
       showSnackbar('Error al guardar', 'error');
     } finally {
       setLoading(false);
     }
   };
 
+  
+
   const handleDelete = async () => {
     if (!planParaEliminar) return;
-    if (!checkToken()) return;
     
     setDeleting(true);
     try {
       const res = await fetch(`${API_BASE_URL}/Planes/${planParaEliminar.idPlan}`, {
-        method: 'DELETE',
-        headers: getAuthHeaders()
+        method: 'DELETE'
       });
-
-      if (res.status === 401) {
-        showSnackbar('Sesión expirada', 'error');
-        window.location.href = '/';
-        return;
-      }
 
       const data = await res.json();
 
       if (res.ok) {
         showSnackbar(data.message || 'Plan desactivado correctamente', 'success');
-        await fetchPlanes(); // 👈 Recargar después de eliminar
+        fetchPlanes();
         setOpenDeleteDialog(false);
       } else {
         showSnackbar(data.message || 'Error al desactivar el plan', 'error');
       }
-    } catch (error) {
-      console.error('Error:', error);
+    } catch {
       showSnackbar('Error de conexión al servidor', 'error');
     } finally {
       setDeleting(false);
@@ -255,6 +214,12 @@ export default function PlanesList() {
     });
   };
 
+  
+  const getServicioNombre = (idServicio) => {
+    const servicio = servicios.find(s => s.idServicio === idServicio);
+    return servicio?.nombre || 'Desconocido';
+  };
+
   const calcularGanancia = (plan) => {
     return plan.precioVenta - plan.precioCompra;
   };
@@ -269,19 +234,7 @@ export default function PlanesList() {
     page * rowsPerPage + rowsPerPage
   );
 
-  // ✅ Obtener lista única de servicios para el filtro
-  const serviciosUnicos = [];
-  const serviciosMap = new Map();
-  planes.forEach(plan => {
-    if (plan.servicio && !serviciosMap.has(plan.servicio.idServicio)) {
-      serviciosMap.set(plan.servicio.idServicio, true);
-      serviciosUnicos.push({
-        id: plan.servicio.idServicio,
-        nombre: plan.servicio.nombre
-      });
-    }
-  });
-
+ 
   return (
     <Box sx={{ p: 1, bgcolor: `${COLOR_PALETTE.dark}05`, minHeight: "100vh" }}>
       {/* Header Compacto */}
@@ -375,8 +328,8 @@ export default function PlanesList() {
                 sx={{ fontSize: '0.85rem' }}
               >
                 <MenuItem value="todos" sx={{ fontSize: '0.85rem' }}>Todos los servicios</MenuItem>
-                {serviciosUnicos.map(servicio => (
-                  <MenuItem key={servicio.id} value={servicio.id} sx={{ fontSize: '0.85rem' }}>
+                {servicios.map(servicio => (
+                  <MenuItem key={servicio.idServicio} value={servicio.idServicio} sx={{ fontSize: '0.85rem' }}>
                     {servicio.nombre}
                   </MenuItem>
                 ))}
@@ -455,15 +408,7 @@ export default function PlanesList() {
                     }}>
                       Precios
                     </TableCell>
-                    <TableCell sx={{
-                      fontWeight: "bold",
-                      fontSize: '0.75rem',
-                      py: 0.5,
-                      backgroundColor: COLOR_PALETTE.primary,
-                      color: 'white'
-                    }}>
-                      Tarjetas
-                    </TableCell>
+                    
                     <TableCell sx={{
                       fontWeight: "bold",
                       fontSize: '0.75rem',
@@ -487,6 +432,7 @@ export default function PlanesList() {
                 <TableBody>
                   {paginatedPlanes.map(plan => {
                     const canDelete = canDeletePlan(plan);
+                    const servicioNombre = getServicioNombre(plan.idServicio);
                     
                     return (
                       <TableRow
@@ -518,7 +464,7 @@ export default function PlanesList() {
                         
                         <TableCell sx={{ py: 0.5 }}>
                           <Chip 
-                            label={plan.servicio?.nombre || 'Desconocido'}
+                            label={servicioNombre}
                             size="small"
                             sx={{
                               fontSize: '0.7rem',
@@ -542,10 +488,10 @@ export default function PlanesList() {
                         <TableCell sx={{ py: 0.5 }}>
                           <Box>
                             <Typography variant="body2" sx={{ fontSize: '0.75rem' }}>
-                              Compra: <strong>Bs. {plan.precioCompra?.toFixed(2)}</strong>
+                              Compra: <strong>Bs. {plan.precioCompra.toFixed(2)}</strong>
                             </Typography>
                             <Typography variant="body2" sx={{ fontSize: '0.75rem', color: COLOR_PALETTE.success }}>
-                              Venta: <strong>Bs. {plan.precioVenta?.toFixed(2)}</strong>
+                              Venta: <strong>Bs. {plan.precioVenta.toFixed(2)}</strong>
                             </Typography>
                             <Typography variant="caption" sx={{ fontSize: '0.65rem', color: 'text.secondary' }}>
                               Ganancia: Bs. {calcularGanancia(plan).toFixed(2)}
@@ -607,12 +553,13 @@ export default function PlanesList() {
                         
                         <TableCell sx={{ py: 0.5 }}>
                           <Box sx={{ display: 'flex', gap: 0.5 }}>
+                            
+
                             {/* Botón Editar */}
                             <Tooltip title="Editar plan">
                               <IconButton
                                 size="small"
                                 onClick={() => handleOpenDialog(plan)}
-                                disabled={plan.estado === 'INACTIVO'}
                                 sx={{
                                   color: plan.estado === 'INACTIVO' ? 
                                     COLOR_PALETTE.dark : 
@@ -633,6 +580,8 @@ export default function PlanesList() {
                                 <Edit sx={{ fontSize: '0.9rem' }} />
                               </IconButton>
                             </Tooltip>
+
+                           
 
                             {/* Botón Desactivar */}
                             <Tooltip title={canDelete ? "Desactivar plan" : "No se puede desactivar"}>
@@ -733,8 +682,8 @@ export default function PlanesList() {
                 label="Servicio"
                 sx={{ fontSize: '0.85rem' }}
               >
-                {serviciosUnicos.map(servicio => (
-                  <MenuItem key={servicio.id} value={servicio.id} sx={{ fontSize: '0.85rem' }}>
+                {servicios.map(servicio => (
+                  <MenuItem key={servicio.idServicio} value={servicio.idServicio} sx={{ fontSize: '0.85rem' }}>
                     {servicio.nombre}
                   </MenuItem>
                 ))}
@@ -851,6 +800,8 @@ export default function PlanesList() {
         </DialogActions>
       </Dialog>
 
+     
+
       {/* Diálogo de Confirmación de Desactivación */}
       <Dialog 
         open={openDeleteDialog} 
@@ -890,7 +841,7 @@ export default function PlanesList() {
                   {planParaEliminar.nombre}
                 </Typography>
                 <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.8rem' }}>
-                  Servicio: {planParaEliminar.servicio?.nombre || 'Desconocido'}
+                  Servicio: {getServicioNombre(planParaEliminar.idServicio)}
                 </Typography>
                 <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.8rem' }}>
                   Duración: {planParaEliminar.duracionDias} días
@@ -903,7 +854,7 @@ export default function PlanesList() {
                     sx={{ fontSize: '0.7rem', height: 20 }}
                   />
                   <Chip 
-                    label={`Bs. ${planParaEliminar.precioVenta?.toFixed(2)}`}
+                    label={`$${planParaEliminar.precioVenta.toFixed(2)}`}
                     size="small"
                     sx={{ fontSize: '0.7rem', height: 20, color: COLOR_PALETTE.success }}
                   />
