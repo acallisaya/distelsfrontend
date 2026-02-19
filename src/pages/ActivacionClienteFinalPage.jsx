@@ -260,8 +260,8 @@ export default function ActivacionClienteFinalPage({
         bgcolor: backgroundColor,
         color: textColor
       }}>
-        {/* TÍTULO VISIBLE - SOLO CUANDO NO ESTÁ EMBEBIDO */}
-        {!embedded && (
+        {/* TÍTULO VISIBLE - SOLO CUANDO ESTÁ EMBEBIDO */}
+        {embedded && (
           <Box sx={{ 
             display: 'flex', 
             justifyContent: 'space-between', 
@@ -332,7 +332,7 @@ export default function ActivacionClienteFinalPage({
                 }}
                 onBlur={handleVerificarCodigo}
                 placeholder="Ej: ABC123XYZ"
-                disabled={loading}
+                disabled={loading || success}
                 helperText={verificando ? "Verificando..." : ""}
                 FormHelperTextProps={{ 
                   sx: { 
@@ -383,106 +383,135 @@ export default function ActivacionClienteFinalPage({
               />
 
               <TextField
-                size="small"
-                label="Nombre (opcional)"
-                value={nombre}
-                onChange={(e) => setNombre(e.target.value)}
-                disabled={loading || !tarjetaVerificada}
-                placeholder="Tu nombre"
-                InputProps={{
-                  sx: { 
-                    fontSize: '0.8rem',
-                    height: '40px',
-                    width: '100%',
-                    color: textColor,
-                    bgcolor: fondoClaro ? '#ffffff' : `${backgroundColor}20`,
-                    '& .MuiOutlinedInput-notchedOutline': {
-                      borderColor: borderColor,
-                    },
-                    '&:hover .MuiOutlinedInput-notchedOutline': {
-                      borderColor: hoverBorderColor,
-                    },
-                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                      borderColor: primaryColor,
-                    },
-                  }
-                }}
-                InputLabelProps={{
-                  sx: {
-                    color: labelColor,
-                    fontSize: '0.75rem',
-                    '&.Mui-focused': {
-                      color: primaryColor,
-                    },
-                  }
-                }}
-                sx={{
-                  width: '100%',
-                  '& .MuiOutlinedInput-root': { 
-                    height: '40px',
-                    borderRadius: 1
-                  },
-                  '& .MuiInputLabel-root': { 
-                    fontSize: '0.75rem'
-                  }
-                }}
-              />
+  size="small"
+  label="Nombre (opcional)"
+  value={nombre}
+  onChange={(e) => {
+    if (tarjetaVerificada) {
+      setNombre(e.target.value);
+    }
+  }}
+  onFocus={(e) => {
+    if (!tarjetaVerificada) {
+      e.target.blur();
+      showSnackbar("⚠️ Primero verifica la tarjeta", "warning");
+    }
+  }}
+  placeholder="Tu nombre"
+  // 👇 QUITAR disabled y usar readOnly condicional
+  InputProps={{
+    readOnly: !tarjetaVerificada,
+    sx: { 
+      fontSize: '0.8rem',
+      height: '40px',
+      width: '100%',
+      color: textColor,
+      bgcolor: fondoClaro ? '#ffffff' : `${backgroundColor}20`,
+      '& .MuiOutlinedInput-notchedOutline': {
+        borderColor: borderColor,
+      },
+      '&:hover .MuiOutlinedInput-notchedOutline': {
+        borderColor: tarjetaVerificada ? hoverBorderColor : borderColor,
+      },
+      '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+        borderColor: tarjetaVerificada ? primaryColor : borderColor,
+      },
+    }
+  }}
+  InputLabelProps={{
+    sx: {
+      color: labelColor,
+      fontSize: '0.75rem',
+      '&.Mui-focused': {
+        color: tarjetaVerificada ? primaryColor : labelColor,
+      },
+    }
+  }}
+  sx={{
+    width: '100%',
+    '& .MuiOutlinedInput-root': { 
+      height: '40px',
+      borderRadius: 1
+    },
+    '& .MuiInputLabel-root': { 
+      fontSize: '0.75rem'
+    },
+    opacity: 1, // 👈 Siempre opaco
+    '& .MuiInputBase-input.Mui-readOnly': {
+      opacity: 0.9, // 👈 Ligera transparencia pero legible
+    }
+  }}
+/>
 
-              <TextField
-                size="small"
-                label="Celular *"
-                value={celular}
-                onChange={(e) => setCelular(e.target.value.replace(/\D/g, ''))}
-                disabled={loading || !tarjetaVerificada}
-                placeholder="76240322"
-                helperText="8 dígitos para WhatsApp Bolivia"
-                FormHelperTextProps={{ 
-                  sx: { 
-                    fontSize: '0.65rem', 
-                    mx: 0,
-                    textAlign: 'center',
-                    color: textColor,
-                    opacity: 0.7
-                  } 
-                }}
-                InputProps={{
-                  sx: { 
-                    fontSize: '0.8rem',
-                    height: '40px',
-                    width: '100%',
-                    color: textColor,
-                    bgcolor: fondoClaro ? '#ffffff' : `${backgroundColor}20`,
-                    '& .MuiOutlinedInput-notchedOutline': {
-                      borderColor: borderColor,
-                    },
-                    '&:hover .MuiOutlinedInput-notchedOutline': {
-                      borderColor: hoverBorderColor,
-                    },
-                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                      borderColor: primaryColor,
-                    },
-                  }
-                }}
-                InputLabelProps={{
-                  sx: {
-                    color: labelColor,
-                    fontSize: '0.75rem',
-                    '&.Mui-focused': {
-                      color: primaryColor,
-                    },
-                  }
-                }}
-                sx={{
-                  width: '100%',
-                  '& .MuiOutlinedInput-root': { 
-                    height: '40px',
-                    borderRadius: 1
-                  },
-                  '& .MuiInputLabel-root': { 
-                    fontSize: '0.75rem'
-                  }
-                }}
-              />
+           <TextField
+  size="small"
+  label="Celular *"
+  value={celular}
+  onChange={(e) => {
+    if (tarjetaVerificada) {
+      setCelular(e.target.value.replace(/\D/g, ''));
+    }
+  }}
+  onFocus={(e) => {
+    if (!tarjetaVerificada) {
+      e.target.blur();
+      showSnackbar("⚠️ Primero verifica la tarjeta", "warning");
+    }
+  }}
+  placeholder="76240322"
+  helperText="8 dígitos para WhatsApp Bolivia"
+  InputProps={{
+    readOnly: !tarjetaVerificada,
+    sx: { 
+      fontSize: '0.8rem',
+      height: '40px',
+      width: '100%',
+      color: textColor,
+      bgcolor: fondoClaro ? '#ffffff' : `${backgroundColor}20`,
+      '& .MuiOutlinedInput-notchedOutline': {
+        borderColor: borderColor,
+      },
+      '&:hover .MuiOutlinedInput-notchedOutline': {
+        borderColor: tarjetaVerificada ? hoverBorderColor : borderColor,
+      },
+      '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+        borderColor: tarjetaVerificada ? primaryColor : borderColor,
+      },
+    }
+  }}
+  InputLabelProps={{
+    sx: {
+      color: labelColor,
+      fontSize: '0.75rem',
+      '&.Mui-focused': {
+        color: tarjetaVerificada ? primaryColor : labelColor,
+      },
+    }
+  }}
+  FormHelperTextProps={{ 
+    sx: { 
+      fontSize: '0.65rem', 
+      mx: 0,
+      textAlign: 'center',
+      color: textColor,
+      opacity: 0.7
+    } 
+  }}
+  sx={{
+    width: '100%',
+    '& .MuiOutlinedInput-root': { 
+      height: '40px',
+      borderRadius: 1
+    },
+    '& .MuiInputLabel-root': { 
+      fontSize: '0.75rem'
+    },
+    opacity: 1,
+    '& .MuiInputBase-input.Mui-readOnly': {
+      opacity: 0.9,
+    }
+  }}
+/>
 
               {tarjetaVerificada && (
                 <Typography 
@@ -502,7 +531,7 @@ export default function ActivacionClienteFinalPage({
               <Button
                 variant="contained"
                 onClick={handleActivacion}
-                disabled={loading || !tarjetaVerificada || !celular.trim()}
+                disabled={loading || success}
                 startIcon={loading ? <CircularProgress size={14} sx={{ color: contrastColor }} /> : <Send />}
                 size="small"
                 sx={{
