@@ -38,6 +38,7 @@ function App() {
         {/* RUTAS PÚBLICAS */}
         {/* ==================== */}
         <Route path="/login" element={<Login />} />
+         <Route path="/" element={<Login />} /> {/* 👈 ESTA VA PRIMERO */}
         <Route path="/login/cliente" element={<LoginCliente />} />
         <Route path="/preview/:clienteId" element={<PreviewPagePro />} />
         <Route path="/pagina/:clienteId" element={<PaginaPublicaPro />} />
@@ -48,7 +49,7 @@ function App() {
         {/* RUTAS PROTEGIDAS DE ADMIN */}
         {/* ==================== */}
         <Route
-          path="/"
+          path="/start"
           element={
             <AuthGuard>
               <Start />
