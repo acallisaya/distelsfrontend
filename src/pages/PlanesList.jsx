@@ -88,7 +88,6 @@ export default function PlanesList() {
       if (res.ok) {
         const data = await res.json();
         setPlanes(data);
-        setFilteredPlanes(data);
       } else {
         showSnackbar('Error al cargar planes', 'error');
       }
@@ -117,37 +116,60 @@ export default function PlanesList() {
     }
   };
 
+  // Cargar datos iniciales
   useEffect(() => {
-    fetchPlanes();
-    fetchServicios();
+    const loadInitialData = async () => {
+      await Promise.all([
+        fetchPlanes(),
+        fetchServicios()
+      ]);
+    };
+    loadInitialData();
   }, []);
 
+  // Sincronizar filteredPlanes cuando cambian planes o servicios
   useEffect(() => {
-    let filtered = [...planes];
-    
-    if (search) {
-      const lower = search.toLowerCase();
-      filtered = filtered.filter(plan =>
-        plan.nombre.toLowerCase().includes(lower) ||
-        plan.servicio?.nombre.toLowerCase().includes(lower)
-      );
-    }
-    
-    if (selectedServicio !== 'todos') {
-      filtered = filtered.filter(plan => 
-        plan.idServicio === parseInt(selectedServicio)
-      );
-    }
+    if (planes.length > 0 && servicios.length > 0) {
+      // Crear un mapa de servicios para búsqueda rápida
+      const serviciosMap = {};
+      servicios.forEach(s => {
+        serviciosMap[s.idServicio] = s.nombre;
+      });
 
-    if (selectedEstado !== 'todos') {
-      filtered = filtered.filter(plan => 
-        plan.estado === selectedEstado
-      );
+      // Enriquecer planes con nombre del servicio
+      const planesEnriquecidos = planes.map(plan => ({
+        ...plan,
+        servicioNombre: serviciosMap[plan.idServicio] || 'Desconocido'
+      }));
+      
+      // Aplicar filtros
+      let filtered = [...planesEnriquecidos];
+      
+      if (search) {
+        const lower = search.toLowerCase();
+        filtered = filtered.filter(plan =>
+          plan.nombre.toLowerCase().includes(lower) ||
+          plan.servicioNombre.toLowerCase().includes(lower)
+        );
+      }
+      
+      if (selectedServicio !== 'todos') {
+        filtered = filtered.filter(plan => 
+          plan.idServicio === parseInt(selectedServicio)
+        );
+      }
+
+      if (selectedEstado !== 'todos') {
+        filtered = filtered.filter(plan => 
+          plan.estado === selectedEstado
+        );
+      }
+      
+      setFilteredPlanes(filtered);
+    } else {
+      setFilteredPlanes(planes);
     }
-    
-    setFilteredPlanes(filtered);
-    setPage(0);
-  }, [search, selectedServicio, selectedEstado, planes]);
+  }, [planes, servicios, search, selectedServicio, selectedEstado]);
 
   const handleOpenDialog = (plan = null) => {
     if (plan) {
@@ -210,7 +232,13 @@ export default function PlanesList() {
           editingPlan ? 'Plan actualizado' : 'Plan creado',
           'success'
         );
-        fetchPlanes();
+        
+        // Recargar ambos datos para mantener sincronización
+        await Promise.all([
+          fetchPlanes(),
+          fetchServicios()
+        ]);
+        
         setOpenDialog(false);
       } else {
         const error = await res.json();
@@ -245,7 +273,13 @@ export default function PlanesList() {
 
       if (res.ok) {
         showSnackbar(data.message || 'Plan desactivado correctamente', 'success');
-        fetchPlanes();
+        
+        // Recargar ambos datos
+        await Promise.all([
+          fetchPlanes(),
+          fetchServicios()
+        ]);
+        
         setOpenDeleteDialog(false);
       } else {
         showSnackbar(data.message || 'Error al desactivar el plan', 'error');
@@ -267,11 +301,6 @@ export default function PlanesList() {
       ...formData,
       [e.target.name]: e.target.value
     });
-  };
-
-  const getServicioNombre = (idServicio) => {
-    const servicio = servicios.find(s => s.idServicio === idServicio);
-    return servicio?.nombre || 'Desconocido';
   };
 
   const calcularGanancia = (plan) => {
@@ -493,7 +522,6 @@ export default function PlanesList() {
                 <TableBody>
                   {paginatedPlanes.map(plan => {
                     const canDelete = canDeletePlan(plan);
-                    const servicioNombre = getServicioNombre(plan.idServicio);
                     
                     return (
                       <TableRow
@@ -525,7 +553,7 @@ export default function PlanesList() {
                         
                         <TableCell sx={{ py: 0.5 }}>
                           <Chip 
-                            label={servicioNombre}
+                            label={plan.servicioNombre || 'Desconocido'}
                             size="small"
                             sx={{
                               fontSize: '0.7rem',
@@ -897,7 +925,7 @@ export default function PlanesList() {
                   {planParaEliminar.nombre}
                 </Typography>
                 <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.8rem' }}>
-                  Servicio: {getServicioNombre(planParaEliminar.idServicio)}
+                  Servicio: {planParaEliminar.servicioNombre || 'Desconocido'}
                 </Typography>
                 <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.8rem' }}>
                   Duración: {planParaEliminar.duracionDias} días
