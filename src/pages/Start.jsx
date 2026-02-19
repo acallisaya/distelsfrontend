@@ -418,14 +418,7 @@ const Start = () => {
             }}>
               DISTELS
             </Typography>
-            <Typography variant="caption" sx={{ 
-              display: 'block',
-              color: COLOR_PALETTE.secondary,
-              fontWeight: 'medium',
-              mt: 0.5
-            }}>
-              Sistema de Gestión
-            </Typography>
+          
           </Box>
 
           <List sx={{ p: 1 }}>
