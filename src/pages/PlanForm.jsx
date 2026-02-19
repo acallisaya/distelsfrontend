@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import {
   Dialog,
-  DialogTitle,
   DialogContent,
   DialogActions,
   Button,
@@ -147,7 +146,7 @@ export default function PlanForm({ open, onClose, planData, servicios, onSave })
         }
       }}
     >
-      {/* Header con gradiente - IGUAL QUE EN CLIENTEFORM */}
+      {/* Header con gradiente */}
       <Paper
         sx={{
           background: `linear-gradient(90deg, ${COLOR_PALETTE.primary}, ${COLOR_PALETTE.secondary})`,
@@ -178,122 +177,121 @@ export default function PlanForm({ open, onClose, planData, servicios, onSave })
         </Box>
       </Paper>
 
-      <DialogContent sx={{ p: 3 }}>
+      <DialogContent sx={{ p: 2 }}>
         {error && (
           <Alert severity="error" sx={{ mb: 2, borderRadius: 1, fontSize: '0.85rem' }}>
             {error}
           </Alert>
         )}
 
-        <Grid container spacing={2}>
-          {/* Selector de Servicio - CON ESTILO MEJORADO */}
-          <Grid item xs={12}>
-            <FormControl fullWidth size="small" required>
-              <InputLabel sx={{ fontSize: '0.85rem' }}>Servicio</InputLabel>
-              <Select
-                name="idServicio"
-                value={formData.idServicio}
-                onChange={handleChange}
-                label="Servicio"
-                sx={{ fontSize: '0.85rem' }}
-              >
-                {servicios.map(servicio => (
-                  <MenuItem key={servicio.id} value={servicio.id} sx={{ fontSize: '0.85rem' }}>
-                    {servicio.nombre}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Grid>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, mt: 1 }}>
+          {/* Selector de Servicio - CORREGIDO */}
+          <FormControl fullWidth size="small" required>
+            <InputLabel sx={{ fontSize: '0.85rem' }}>Servicio</InputLabel>
+            <Select
+              name="idServicio"
+              value={formData.idServicio}
+              onChange={handleChange}
+              label="Servicio"
+              sx={{ fontSize: '0.85rem' }}
+            >
+              {servicios.map(servicio => (
+                <MenuItem 
+                  key={servicio.idServicio || servicio.id} 
+                  value={servicio.idServicio || servicio.id} 
+                  sx={{ fontSize: '0.85rem' }}
+                >
+                  {servicio.nombre}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
 
           {/* Nombre del Plan */}
-          <Grid item xs={12}>
-            <TextField
-              fullWidth
-              label="Nombre del Plan *"
-              name="nombre"
-              value={formData.nombre}
-              onChange={handleChange}
-              size="small"
-              placeholder="Ej: Plan 30 días, 1 Pantalla, etc."
-              InputProps={{ style: { fontSize: '0.85rem' } }}
-              InputLabelProps={{ style: { fontSize: '0.85rem' } }}
-            />
-          </Grid>
+          <TextField
+            fullWidth
+            label="Nombre del Plan *"
+            name="nombre"
+            size="small"
+            value={formData.nombre}
+            onChange={handleChange}
+            placeholder="Ej: Plan 30 días, 1 Pantalla, etc."
+            InputProps={{ style: { fontSize: '0.85rem' } }}
+            InputLabelProps={{ style: { fontSize: '0.85rem' } }}
+          />
 
-          {/* Duración */}
-          <Grid item xs={12} md={6}>
-            <TextField
-              fullWidth
-              label="Duración (días) *"
-              name="duracionDias"
-              type="number"
-              size="small"
-              value={formData.duracionDias}
-              onChange={handleChange}
-              InputProps={{ 
-                inputProps: { min: 1, max: 365 },
-                style: { fontSize: '0.85rem' }
-              }}
-              InputLabelProps={{ style: { fontSize: '0.85rem' } }}
-            />
-          </Grid>
+          {/* Grid para campos numéricos */}
+          <Grid container spacing={1.5}>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Duración (días) *"
+                name="duracionDias"
+                type="number"
+                size="small"
+                value={formData.duracionDias}
+                onChange={handleChange}
+                InputProps={{ 
+                  inputProps: { min: 1, max: 365 },
+                  style: { fontSize: '0.85rem' }
+                }}
+                InputLabelProps={{ style: { fontSize: '0.85rem' } }}
+              />
+            </Grid>
 
-          {/* Precio Compra */}
-          <Grid item xs={12} md={6}>
-            <TextField
-              fullWidth
-              label="Precio de Compra *"
-              name="precioCompra"
-              type="number"
-              size="small"
-              value={formData.precioCompra}
-              onChange={handleChange}
-              InputProps={{ 
-                inputProps: { min: 0, step: 0.01 },
-                style: { fontSize: '0.85rem' }
-              }}
-              InputLabelProps={{ style: { fontSize: '0.85rem' } }}
-            />
-          </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Precio de Compra *"
+                name="precioCompra"
+                type="number"
+                size="small"
+                value={formData.precioCompra}
+                onChange={handleChange}
+                InputProps={{ 
+                  inputProps: { min: 0, step: 0.01 },
+                  style: { fontSize: '0.85rem' }
+                }}
+                InputLabelProps={{ style: { fontSize: '0.85rem' } }}
+              />
+            </Grid>
 
-          {/* Precio Venta */}
-          <Grid item xs={12} md={6}>
-            <TextField
-              fullWidth
-              label="Precio de Venta *"
-              name="precioVenta"
-              type="number"
-              size="small"
-              value={formData.precioVenta}
-              onChange={handleChange}
-              InputProps={{ 
-                inputProps: { min: 0, step: 0.01 },
-                style: { fontSize: '0.85rem' }
-              }}
-              InputLabelProps={{ style: { fontSize: '0.85rem' } }}
-            />
-          </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Precio de Venta *"
+                name="precioVenta"
+                type="number"
+                size="small"
+                value={formData.precioVenta}
+                onChange={handleChange}
+                InputProps={{ 
+                  inputProps: { min: 0, step: 0.01 },
+                  style: { fontSize: '0.85rem' }
+                }}
+                InputLabelProps={{ style: { fontSize: '0.85rem' } }}
+              />
+            </Grid>
 
-          {/* Ganancia (solo lectura) */}
-          <Grid item xs={12} md={6}>
-            <TextField
-              fullWidth
-              label="Ganancia"
-              size="small"
-              value={ganancia}
-              InputProps={{
-                readOnly: true,
-                sx: { 
-                  color: COLOR_PALETTE.success, 
-                  fontWeight: 'bold',
-                  fontSize: '0.85rem'
-                }
-              }}
-              InputLabelProps={{ style: { fontSize: '0.85rem' } }}
-            />
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Ganancia"
+                size="small"
+                value={ganancia}
+                InputProps={{
+                  readOnly: true,
+                  sx: { 
+                    color: COLOR_PALETTE.success, 
+                    fontWeight: 'bold',
+                    fontSize: '0.85rem'
+                  }
+                }}
+                InputLabelProps={{ style: { fontSize: '0.85rem' } }}
+              />
+            </Grid>
           </Grid>
-        </Grid>
+        </Box>
       </DialogContent>
 
       <DialogActions sx={{ p: 2, borderTop: `1px solid ${COLOR_PALETTE.dark}10` }}>
